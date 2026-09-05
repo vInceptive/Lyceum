@@ -534,6 +534,8 @@ class Component extends DCLogic {
 
   styleInner(el) {
     const b = this.state.box; if (!b || !el) return;
+    el.style.userSelect = 'text';
+    el.style.webkitUserSelect = 'text';
     el.style.width = b.contentW + 'px';
     el.style.height = b.contentH + 'px';
     el.style.columnWidth = b.contentW + 'px';
