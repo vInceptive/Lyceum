@@ -1019,11 +1019,20 @@ class Component extends DCLogic {
         this.setState({ look: Object.assign({}, this.state.look, { note, entries }) }, () => this.placeLook());
       }
     };
-    let entries = null;
-    try { entries = await this.defFromApi(word); } catch (e) {}
-    if (!entries || !entries.length) { try { entries = await this.defFromModel(word); } catch (e) {} }
+    let entries = null, why = '';
+    const sources = [
+      () => this.defFromApi(word),
+      () => this.defFromWiktionary(word),
+      () => this.defFromModel(word)
+    ];
+    for (const get of sources) {
+      try {
+        entries = await get();
+        if (entries && entries.length) break;
+      } catch (e) { why = e && e.message ? e.message : String(e); }
+    }
     if (entries && entries.length) show('', entries);
-    else show('No definition found for “' + word + '”.', []);
+    else show('No definition found for “' + word + '”.' + (why ? ' (' + why + ')' : ''), []);
   }
 
   async defFromModel(word) {
@@ -1037,6 +1046,34 @@ class Component extends DCLogic {
     if (!m) return null;
     const j = JSON.parse(m[0]);
     return (j.defs || []).filter((d) => d && d.text).slice(0, 3).map((d) => ({ pos: d.pos || '', text: d.text }));
+  }
+
+  // Wiktionary-backed second source, in case dictionaryapi.dev is unreachable.
+  async defFromWiktionary(word) {
+    const j = await this.getJson('https://freedictionaryapi.com/api/v1/entries/en/' + encodeURIComponent(word.toLowerCase()));
+    if (!j) return null;
+    const out = [];
+    const list = j.entries || j.definitions || [];
+    (Array.isArray(list) ? list : []).forEach((e) => {
+      const pos = e.partOfSpeech || e.pos || '';
+      const senses = e.senses || e.definitions || [];
+      (Array.isArray(senses) ? senses : []).forEach((sn) => {
+        const t = typeof sn === 'string' ? sn : (sn.definition || sn.text || '');
+        if (t && out.length < 4) out.push({ pos, text: t });
+      });
+    });
+    return out;
+  }
+
+  async getJson(url) {
+    const ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = setTimeout(() => { if (ac) ac.abort(); }, 6000);
+    let res;
+    try {
+      res = await fetch(url, ac ? { signal: ac.signal } : undefined);
+    } finally { clearTimeout(timer); }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
   }
 
   async defFromApi(word) {
