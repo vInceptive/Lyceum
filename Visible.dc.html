@@ -13,7 +13,8 @@
 <style>
   /* keep the shortcut hint legible when its row inverts */
   [data-act]:hover > span { color: inherit }
-  [data-bk] { color:#241f19 }
+  /* the desktop shell disables selection globally; book text needs it back */
+  [data-bk] { color:#241f19; user-select:text; -webkit-user-select:text; cursor:text }
   [data-bk] img, [data-bk] svg { display:block; max-width:100%; height:auto; margin:0 auto .9em }
   [data-bk] h1, [data-bk] h2, [data-bk] h3, [data-bk] h4 { font-weight:600; line-height:1.24; margin:0 0 .55em; break-after:avoid-column }
   [data-bk] h1 { font-size:1.5em } [data-bk] h2 { font-size:1.26em } [data-bk] h3 { font-size:1.08em }
