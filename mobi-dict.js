@@ -643,4 +643,163 @@ export async function loadMobiDictionary(file, onProgress) {
   return new MobiDictionary(file.name.replace(/\.(mobi|prc|azw3?)$/i, ''), text, index, textEncoding);
 }
 
+
+
+/* ---------- pre-parsed pack format ----------
+   A .pack is the parsed dictionary — text stream plus headword index — written
+   straight to disk and gzipped, so loading it skips the whole MOBI parse. */
+
+const PACK_MAGIC = 'VDCTPK01';
+const G = typeof window !== 'undefined' ? window : globalThis;
+
+async function gzip(blob) {
+  if (typeof CompressionStream === 'undefined') return blob;
+  return new Response(blob.stream().pipeThrough(new CompressionStream('gzip'))).blob();
+}
+
+async function gunzip(bytes) {
+  if (!(bytes[0] === 0x1f && bytes[1] === 0x8b)) return bytes;
+  if (typeof DecompressionStream === 'undefined') throw new Error('this browser cannot read gzip');
+  const s = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+
+export async function packDictionary(dict) {
+  const enc = new TextEncoder();
+  const meta = enc.encode(JSON.stringify({ name: dict.name, encoding: dict.encoding, count: dict.count }));
+  const idx = enc.encode(JSON.stringify(flattenIndex(dict.index)));
+  const head = new Uint8Array(16);
+  for (let i = 0; i < 8; i++) head[i] = PACK_MAGIC.charCodeAt(i);
+  new DataView(head.buffer).setUint32(8, meta.length, true);
+  new DataView(head.buffer).setUint32(12, idx.length, true);
+  return gzip(new Blob([head, meta, idx, dict.text]));
+}
+
+async function fetchBytes(url, say) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(url + ' → ' + res.status);
+  const total = Number(res.headers.get('content-length')) || 0;
+  if (!res.body || !total) return new Uint8Array(await res.arrayBuffer());
+  const reader = res.body.getReader(), parts = [];
+  let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value); got += value.length;
+    say('Downloading dictionary… ' + Math.round(got / total * 100) + '%');
+  }
+  const out = new Uint8Array(got);
+  let at = 0;
+  for (const p of parts) { out.set(p, at); at += p.length; }
+  return out;
+}
+
+export async function loadPackedDictionary(url, onProgress) {
+  const say = (m) => { if (onProgress) onProgress(m); };
+  const file = decodeURIComponent(String(url).split('/').pop().split('?')[0]) || 'dictionary.pack';
+  say('Fetching dictionary…');
+  const raw = await fetchBytes(url, say);
+  const key = file + ':' + raw.length + ':v' + PARSER_VERSION;
+
+  const cached = await idbGet(key);
+  if (cached && cached.text && cached.index) {
+    say('Loading cached index…');
+    return new MobiDictionary(cached.name, new Uint8Array(cached.text), reviveIndex(cached.index), cached.encoding);
+  }
+
+  say('Unpacking dictionary…');
+  const bytes = await gunzip(raw);
+  let magic = '';
+  for (let i = 0; i < 8; i++) magic += String.fromCharCode(bytes[i]);
+  if (magic !== PACK_MAGIC) throw new Error('not a dictionary pack');
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const metaLen = dv.getUint32(8, true), idxLen = dv.getUint32(12, true);
+  const dec = new TextDecoder();
+  const meta = JSON.parse(dec.decode(bytes.subarray(16, 16 + metaLen)));
+  const flat = JSON.parse(dec.decode(bytes.subarray(16 + metaLen, 16 + metaLen + idxLen)));
+  const text = bytes.slice(16 + metaLen + idxLen);
+  const index = reviveIndex(flat);
+
+  say('Caching for offline use…');
+  await idbPut(key, { file, size: raw.length, name: meta.name, text: text.buffer, index: flat, encoding: meta.encoding });
+  return new MobiDictionary(meta.name, text, index, meta.encoding);
+}
+
+/* ---------- one dictionary, shared by every part of the app ---------- */
+
+export function onDictionaryProgress(fn) {
+  (G.__vqDictSubs = G.__vqDictSubs || []).push(fn);
+  if (G.__vqDictSay) fn(G.__vqDictSay);
+  return () => { G.__vqDictSubs = (G.__vqDictSubs || []).filter((f) => f !== fn); };
+}
+
+function emit(m) {
+  G.__vqDictSay = m;
+  (G.__vqDictSubs || []).forEach((f) => { try { f(m); } catch (e) { /* subscriber went away */ } });
+}
+
+async function firstThatExists(urls) {
+  let why = '';
+  for (const u of urls) {
+    try {
+      const h = await fetch(u, { method: 'HEAD' });
+      if (h.ok) return { url: u, size: Number(h.headers.get('content-length')) || 0 };
+      why = u + ' → ' + h.status;
+    } catch (e) { why = u + ' → unreachable'; }
+  }
+  throw new Error(why || 'nothing to load');
+}
+
+// Neighbouring paths, because the reader can be mounted from a page one level
+// above or below the files it ships with.
+function candidates(p) {
+  return /^(https?:|\/)/.test(p) ? [p] : [p, '../' + p, '/' + p];
+}
+
+async function buildDictionary(opts) {
+  const keys = await cachedDictionaries();
+  const current = keys.filter((k) => String(k).endsWith(':v' + PARSER_VERSION));
+  if (current.length) {
+    const key = String(current[0]).replace(/:v\d+$/, '');
+    const cut = key.lastIndexOf(':');
+    emit('Loading dictionary…');
+    const d = await loadMobiDictionary(
+      { name: cut > 0 ? key.slice(0, cut) : key, size: cut > 0 ? Number(key.slice(cut + 1)) || 0 : 0,
+        arrayBuffer: () => Promise.reject(new Error('cache miss')) }, emit);
+    emit('');
+    return d;
+  }
+  if (keys.length) await forgetDictionaries();
+
+  let why = '';
+  if (opts.pack) {
+    try {
+      const hit = await firstThatExists(candidates(opts.pack));
+      const d = await loadPackedDictionary(hit.url, emit);
+      emit('');
+      return d;
+    } catch (e) { why = e.message; }
+  }
+  if (opts.mobi) {
+    const hit = await firstThatExists(candidates(opts.mobi));
+    const name = decodeURIComponent(hit.url.split('/').pop().split('?')[0]);
+    const d = await loadMobiDictionary(
+      { name, size: hit.size, arrayBuffer: async () => (await fetchBytes(hit.url, emit)).buffer }, emit);
+    emit('');
+    return d;
+  }
+  throw new Error(why || 'no bundled dictionary');
+}
+
+// Kicked off at desktop boot and awaited again when the reader opens; the work
+// happens once and both callers get the same dictionary.
+export function sharedDictionary(opts) {
+  if (!G.__vqDict) {
+    G.__vqDict = buildDictionary(opts || {}).catch((e) => { G.__vqDict = null; throw e; });
+  }
+  return G.__vqDict;
+}
+
+export function adoptDictionary(dict) { G.__vqDict = dict ? Promise.resolve(dict) : null; }
+
 export const __test = { entryText, headwordOf, stripHtml, dedupeHead };

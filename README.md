@@ -9,7 +9,8 @@ Copy the contents to the web root, replacing what's there.
 | `Visible.dc.html` | — | The Visible epub reader, loaded when that app opens |
 | `support.js` | — | Runtime `Visible.dc.html` needs |
 | `mobi-dict.js` | — | The .mobi dictionary parser, imported by Visible on demand |
-| `assets/dictionary.mobi` | — | Optional bundled dictionary — fetched once, then cached in the browser |
+| `assets/dictionary.pack` | — | Pre-parsed dictionary (fast path). Build it in Visible: File ▸ Save dictionary pack… |
+| `assets/dictionary.mobi` | — | Raw dictionary — only needed if there is no `.pack` |
 | `assets/` | `/assets/…` | Wallpaper and icons |
 | `.nojekyll` | — | Stops GitHub Pages from running Jekyll over the files |
 | `oura-proxy-worker.js` | — | Cloudflare Worker, deployed separately (not served) |
