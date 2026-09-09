@@ -251,7 +251,7 @@ class Component extends DCLogic {
     counts: [], starts: [], total: 0,
     page: 0, spread: 2, fontSize: 17, family: FAMILIES[0].v,
     panel: null, query: '', results: [], marks: [],
-    menu: null, box: null, look: null, dictStatus: '', dictErr: '', dictStale: false
+    menu: null, box: null, look: null, dictStatus: '', dictErr: '', dictStale: false, dictBundled: ''
   };
 
   dict = null;
@@ -1125,9 +1125,15 @@ class Component extends DCLogic {
     let size = 0;
     try {
       const h = await fetch(url, { method: 'HEAD' });
-      if (!h.ok) return;                       // not shipped with this build
+      if (!h.ok) {                             // not shipped with this build
+        this.setState({ dictBundled: 'No file at ' + url + ' (' + h.status + ').' });
+        return;
+      }
       size = Number(h.headers.get('content-length')) || 0;
-    } catch (e) { return; }
+    } catch (e) {
+      this.setState({ dictBundled: 'Could not reach ' + url + '.' });
+      return;
+    }
 
     const download = async () => {
       const res = await fetch(url);
@@ -1445,7 +1451,8 @@ class Component extends DCLogic {
       else if (s.dictStatus) noteText = s.dictStatus;
       else if (this.dict) noteText = this.dict.name + ' is loaded — ' + this.dict.count.toLocaleString() + ' headwords, cached on this machine. Double-click any word in the book to look it up.';
       else if (s.dictStale) noteText = 'The cached dictionary was built by an older, buggy version of the parser, so it has been discarded. Drop the .mobi file in again to rebuild it.';
-      else noteText = 'No dictionary loaded. Drag a .mobi dictionary onto this window, or use File ▸ Load .mobi dictionary…';
+      else noteText = 'No dictionary loaded. ' + (s.dictBundled ? s.dictBundled + ' ' : '')
+        + 'Drag a .mobi dictionary onto this window, or use File ▸ Load .mobi dictionary…';
     } else if (s.panel === 'find') {
       panelTitle = 'FIND — ' + s.results.length + (s.results.length === 60 ? '+ hits' : ' hits');
       rows = s.results.map((r) => ({ kind: 'find', p: 0, ch: r.ch, idx: r.idx, label: r.snippet, right: '', wrap: 'normal', style: row(false) }));

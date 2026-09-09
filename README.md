@@ -8,6 +8,8 @@ Copy the contents to the web root, replacing what's there.
 | `site.html` | `/site.html` | The portfolio site; also what Internet Voyager loads |
 | `Visible.dc.html` | — | The Visible epub reader, loaded when that app opens |
 | `support.js` | — | Runtime `Visible.dc.html` needs |
+| `mobi-dict.js` | — | The .mobi dictionary parser, imported by Visible on demand |
+| `assets/dictionary.mobi` | — | Optional bundled dictionary — fetched once, then cached in the browser |
 | `assets/` | `/assets/…` | Wallpaper and icons |
 | `.nojekyll` | — | Stops GitHub Pages from running Jekyll over the files |
 | `oura-proxy-worker.js` | — | Cloudflare Worker, deployed separately (not served) |
@@ -16,6 +18,9 @@ Copy the contents to the web root, replacing what's there.
 
 - `index.html` fetches `site.html`, `Visible.dc.html`, and `assets/wallpaper.jpg`
   at runtime. Everything else is inlined.
+- Visible fetches `assets/dictionary.mobi` on first run and caches the parsed index in
+  IndexedDB. Leave the file out and the reader just falls back to drag-and-drop.
+- After redeploying, hard-refresh: browsers cache `Visible.dc.html` and `mobi-dict.js`.
 - `.nojekyll` is a dotfile and zip extraction often hides or skips it. If it's missing
   after upload: GitHub → Add file → Create new file → name it `.nojekyll` → commit empty.
 - Filenames are case-sensitive on GitHub Pages.
