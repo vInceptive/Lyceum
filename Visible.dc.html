@@ -232,7 +232,7 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:720},&quot;turnMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:420,&quot;min&quot;:150,&quot;max&quot;:900,&quot;step&quot;:10,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Page turn&quot;},&quot;dictPackUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/dictionary.pack&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Dictionary&quot;},&quot;dictUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/dictionary.mobi&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Dictionary&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:720},&quot;turnMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:420,&quot;min&quot;:150,&quot;max&quot;:900,&quot;step&quot;:10,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Page turn&quot;}}">
 const SIG_EOCD = 0x06054b50, SIG_CEN = 0x02014b50;
 const FAMILIES = [
   { n: 'Literata', v: 'Literata, Georgia, serif' },
@@ -272,9 +272,17 @@ class Component extends DCLogic {
     window.addEventListener('mousedown', this.shutMenu, true);
     this.relayout();
     this.restoreDict();
+    window.addEventListener('meexe-open-dict', this.onOpenDict);
+    if (window.__meexeDictWanted) {
+      const u = window.__meexeDictWanted;
+      window.__meexeDictWanted = '';
+      setTimeout(() => this.loadDictFromUrl(u), 0);
+    }
   }
+  onOpenDict = (e) => { this.loadDictFromUrl(e && e.detail && e.detail.url); };
+
   componentWillUnmount() {
-    if (this._unsay) this._unsay();
+    window.removeEventListener('meexe-open-dict', this.onOpenDict);
     if (this.ro) this.ro.disconnect();
     window.removeEventListener('keydown', this.onKey);
     window.removeEventListener('mousedown', this.shutMenu, true);
@@ -1071,7 +1079,7 @@ class Component extends DCLogic {
   /* ---- local .mobi dictionary ---- */
 
   dictLine() {
-    if (this.state.dictErr) return 'Dictionary failed — see panel';
+    if (this.state.dictErr && !this.dict) return 'Dictionary failed — see panel';
     const d = this.state.dictStatus;
     if (d) return d;
     if (this.dict) return this.dict.name + ' · ' + this.dict.count.toLocaleString() + ' words';
@@ -1089,39 +1097,76 @@ class Component extends DCLogic {
     return this._dictMod;
   }
 
-  // One shared load for the whole app: cache first, then the pre-parsed pack
-  // shipped beside the app, then the raw .mobi as a fallback.
+  // Nothing is fetched on its own. A dictionary parsed in an earlier session is
+  // restored from IndexedDB; otherwise the reader uses the online dictionary
+  // until someone opens a .mobi by hand.
   async restoreDict() {
-    const mod = await this.loadDictModule();
-    this._unsay = mod.onDictionaryProgress((m) => this.setState({ dictStatus: m }));
     try {
-      this.dict = await mod.sharedDictionary({
-        pack: this.props.dictPackUrl ?? 'assets/dictionary.pack',
-        mobi: this.props.dictUrl ?? 'assets/dictionary.mobi'
-      });
-      this.setState({ dictStatus: '', dictErr: '', dictBundled: '' });
+      const mod = await this.loadDictModule();
+      const keys = await mod.cachedDictionaries();
+      const current = keys.filter((k) => String(k).endsWith(':v' + mod.PARSER_VERSION));
+      if (!current.length) {
+        if (keys.length) {
+          await mod.forgetDictionaries();
+          this.setState({ dictErr: '', dictStatus: '', dictStale: true });
+        }
+        return;
+      }
+      // Filenames may contain colons, so the size is everything after the LAST one.
+      const key = String(current[0]).replace(/:v\d+$/, '');
+      const cut = key.lastIndexOf(':');
+      this.setState({ dictStatus: 'Loading dictionary…' });
+      this.dict = await mod.loadMobiDictionary(
+        { name: cut > 0 ? key.slice(0, cut) : key, size: cut > 0 ? Number(key.slice(cut + 1)) || 0 : 0,
+          arrayBuffer: () => Promise.reject(new Error('cache miss')) },
+        (m) => this.setState({ dictStatus: m }));
+      this.setState({ dictStatus: '' });
     } catch (e) {
-      this.dict = null;
-      this.setState({ dictStatus: '', dictBundled: 'No bundled dictionary (' + (e && e.message ? e.message : e) + ').' });
+      this.setState({ dictStatus: '' });
     }
   }
 
-  async savePack() {
-    if (!this.dict) return;
-    this.setState({ panel: 'dict', dictStatus: 'Building pack…' });
+  // Opening the .mobi that sits on the desktop: same path as dropping the file
+  // in, but the bytes come over the wire.
+  loadDictFromUrl = async (url) => {
+    if (!url || this._dictBusy) return;
+    const name = decodeURIComponent(String(url).split('/').pop().split('?')[0]) || 'dictionary.mobi';
+    if (this.dict && this.dict.name === name.replace(/\.(mobi|prc|azw3?)$/i, '')) { this.setState({ panel: 'dict' }); return; }
+    this._dictBusy = true;
+    this.setState({ panel: 'dict', dictStatus: 'Opening ' + name + '…', dictErr: '', dictStale: false });
     try {
+      const head = await fetch(url, { method: 'HEAD' });
+      if (!head.ok) throw new Error(url + ' → ' + head.status);
+      const size = Number(head.headers.get('content-length')) || 0;
+      const download = async () => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(url + ' → ' + res.status);
+        const total = Number(res.headers.get('content-length')) || size;
+        if (!res.body || !total) return res.arrayBuffer();
+        const reader = res.body.getReader(), parts = [];
+        let got = 0;
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          parts.push(value); got += value.length;
+          this.setState({ dictStatus: 'Downloading ' + name + '… ' + Math.round(got / total * 100) + '%' });
+        }
+        const out = new Uint8Array(got);
+        let at = 0;
+        for (const p of parts) { out.set(p, at); at += p.length; }
+        return out.buffer;
+      };
       const mod = await this.loadDictModule();
-      const blob = await mod.packDictionary(this.dict);
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'dictionary.pack';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 30000);
-      this.setState({ dictStatus: '' });
-    } catch (e) {
-      this.setState({ dictStatus: '', dictErr: e && e.message ? e.message : String(e) });
+      this.dict = await mod.loadMobiDictionary({ name, size, arrayBuffer: download },
+        (m) => this.setState({ dictStatus: m }));
+      this.setState({ dictStatus: '', dictErr: '' });
+    } catch (err) {
+      // Keep whatever dictionary is already loaded; a bad URL should not cost
+      // someone the copy they already have.
+      this.setState({ dictStatus: '', dictErr: err && err.message ? err.message : String(err) });
     }
-  }
+    this._dictBusy = false;
+  };
 
   onDictPick = async (e) => {
     const f = e.target.files && e.target.files[0];
@@ -1136,10 +1181,8 @@ class Component extends DCLogic {
       const mod = await this.loadDictModule();
       const dict = await mod.loadMobiDictionary(f, (m) => this.setState({ dictStatus: m }));
       this.dict = dict;
-      mod.adoptDictionary(dict);
       this.setState({ dictStatus: '', dictErr: '' });
     } catch (err) {
-      this.dict = null;
       this.setState({ dictStatus: '', dictErr: err && err.message ? err.message : String(err) });
     }
   };
@@ -1149,7 +1192,6 @@ class Component extends DCLogic {
     this.setState({ dictErr: '' });
     try {
       const mod = await this.loadDictModule();
-      mod.adoptDictionary(null);
       await mod.forgetDictionaries();
     } catch (e) { /* nothing to clear */ }
     this.setState({ dictStatus: '' });
@@ -1329,7 +1371,6 @@ class Component extends DCLogic {
       if (this.R.rDict.current) this.R.rDict.current.click();
     }
     else if (a === 'nodict') this.forgetDict();
-    else if (a === 'savepack') this.savePack();
     else if (a === 'close') { (this.blobs || []).forEach(URL.revokeObjectURL); this.blobs = []; this.key = ''; this.setState({ stage: 'empty', chapters: [], toc: [], text: [], total: 0, page: 0, results: [], panel: null, title: '', author: '' }); }
     else if (a === 'toc') this.setState({ panel: st.panel === 'toc' ? null : 'toc' });
     else if (a === 'marks') this.setState({ panel: st.panel === 'marks' ? null : 'marks' });
@@ -1370,7 +1411,6 @@ class Component extends DCLogic {
         { act: 'export', label: 'Export reading data…', hint: '' },
         { act: 'import', label: 'Import reading data…', hint: '' },
         { act: 'dict', label: 'Load .mobi dictionary…', hint: '' },
-        { act: 'savepack', label: 'Save dictionary pack…', hint: '' },
         { act: 'nodict', label: 'Forget dictionary', hint: '' }
       ] },
       { id: 'view', label: 'View', items: [
@@ -1391,7 +1431,7 @@ class Component extends DCLogic {
       id: m.id, label: m.label, open: s.menu === m.id, btn: btn(s.menu === m.id),
       items: m.items.map((it) => {
         const always = it.act === 'open' || it.act === 'export' || it.act === 'import'
-          || it.act === 'dict' || it.act === 'nodict' || it.act === 'savepack';
+          || it.act === 'dict' || it.act === 'nodict';
         const dis = !reading && !always;
         return { act: it.act, label: it.label, hint: it.hint, style: item(dis), dis, live: !dis };
       })
@@ -1411,7 +1451,8 @@ class Component extends DCLogic {
       emptyText = 'No bookmarks yet. Use Bookmark page to add one.';
     } else if (s.panel === 'dict') {
       panelTitle = 'DICTIONARY';
-      if (s.dictErr) errText = 'Could not open that dictionary: ' + s.dictErr;
+      if (s.dictErr) errText = 'Could not open that dictionary: ' + s.dictErr
+        + (this.dict ? ' — still using ' + this.dict.name + '.' : '');
       else if (s.dictStatus) noteText = s.dictStatus;
       else if (this.dict) noteText = this.dict.name + ' is loaded — ' + this.dict.count.toLocaleString() + ' headwords, cached on this machine. Double-click any word in the book to look it up.';
       else if (s.dictStale) noteText = 'The cached dictionary was built by an older, buggy version of the parser, so it has been discarded. Drop the .mobi file in again to rebuild it.';
