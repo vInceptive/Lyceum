@@ -1074,6 +1074,7 @@ class Component extends DCLogic {
     const d = this.state.dictStatus;
     if (d) return d;
     if (this.dict) return this.dict.name + ' · ' + this.dict.count.toLocaleString() + ' words';
+    if (this.state.dictBundled) return 'No local dictionary — ' + this.state.dictBundled;
     return 'No local dictionary';
   }
 
@@ -1113,27 +1114,28 @@ class Component extends DCLogic {
       this.setState({ dictStatus: '' });
     } catch (e) {
       this.setState({ dictStatus: '' });
+      this.loadBundledDict();
     }
   }
 
   // A .mobi shipped alongside the app (deploy/…) is fetched once, parsed, and
   // cached; later sessions read the cache and never touch the network.
   async loadBundledDict() {
-    const url = this.props.dictUrl ?? 'assets/dictionary.mobi';
-    if (!url || this.dict) return;
-    const name = decodeURIComponent(String(url).split('/').pop().split('?')[0]) || 'dictionary.mobi';
-    let size = 0;
-    try {
-      const h = await fetch(url, { method: 'HEAD' });
-      if (!h.ok) {                             // not shipped with this build
-        this.setState({ dictBundled: 'No file at ' + url + ' (' + h.status + ').' });
-        return;
-      }
-      size = Number(h.headers.get('content-length')) || 0;
-    } catch (e) {
-      this.setState({ dictBundled: 'Could not reach ' + url + '.' });
-      return;
+    const want = this.props.dictUrl ?? 'assets/dictionary.mobi';
+    if (!want || this.dict) return;
+    const name = decodeURIComponent(String(want).split('/').pop().split('?')[0]) || 'dictionary.mobi';
+    // The reader can be mounted from a page one level up or down from the file,
+    // so try the obvious neighbours before giving up.
+    const tries = /^(https?:|\/)/.test(want) ? [want] : [want, '../' + want, '/' + want];
+    let url = '', size = 0, why = '';
+    for (const cand of tries) {
+      try {
+        const h = await fetch(cand, { method: 'HEAD' });
+        if (h.ok) { url = cand; size = Number(h.headers.get('content-length')) || 0; break; }
+        why = cand + ' → ' + h.status;
+      } catch (e) { why = cand + ' → unreachable'; }
     }
+    if (!url) { this.setState({ dictBundled: 'No bundled dictionary (' + why + ').' }); return; }
 
     const download = async () => {
       const res = await fetch(url);
