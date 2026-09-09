@@ -34,6 +34,7 @@
 
   <input ref="{{ rFile }}" type="file" accept=".epub,application/epub+zip" onChange="{{ onPick }}" style="display:none" />
   <input ref="{{ rData }}" type="file" accept=".json,application/json" onChange="{{ onImport }}" style="display:none" />
+  <input ref="{{ rDict }}" type="file" accept=".mobi,.prc,.azw,.azw3" onChange="{{ onDictPick }}" style="display:none" />
 
   <!-- menu bar -->
   <div style="flex:none;display:flex;align-items:stretch;gap:1px;padding:2px 3px;background:linear-gradient(180deg,#eeeae0,#ddd9cd);border-bottom:1px solid #b9b4a6;position:relative;z-index:40">
@@ -104,6 +105,12 @@
           <sc-if value="{{ panelEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="padding:14px 8px;font-size:11px;color:#8a8377;line-height:1.6">{{ panelEmptyText }}</div>
           </sc-if>
+          <sc-if value="{{ panelNote }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:14px 9px;font-size:12px;color:#1e1b16;line-height:1.6">{{ panelNoteText }}</div>
+          </sc-if>
+          <sc-if value="{{ panelErr }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:14px 9px;font-size:12px;font-weight:700;color:#8c2f1c;line-height:1.6">{{ panelErrText }}</div>
+          </sc-if>
         </div>
       </div>
     </sc-if>
@@ -122,7 +129,7 @@
             <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:#c97b62"></div>
           </div>
           <div style="font-size:13px;font-weight:700;color:#f0e9dc;letter-spacing:.3px">Visible</div>
-          <div style="font-size:11px;line-height:1.7;color:#bdb3a2">Drop an .epub file anywhere in this window, or open one from disk. Click a page edge to turn. Grab the fore-edge and pull to riffle through the book.</div>
+          <div style="font-size:11px;line-height:1.7;color:#bdb3a2">Drop an .epub anywhere in this window, or open one from disk. A .mobi dictionary can be dropped here too. Click a page edge to turn. Grab the fore-edge and pull to riffle through the book.</div>
           <button data-act="open" onClick="{{ onAct }}" style="height:24px;padding:0 16px;white-space:nowrap;font-family:inherit;font-size:11px;font-weight:700;color:#1e1b16;cursor:pointer;background:linear-gradient(180deg,#e8e4d8,#cfcabc);border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #6f6a5e;border-bottom:1px solid #6f6a5e">Open a book…</button>
         </div>
       </sc-if>
@@ -193,6 +200,9 @@
                     <div style="font-size:11px;line-height:1.55;color:#1e1b16">{{ d.text }}</div>
                   </div>
                 </sc-for>
+                <sc-if value="{{ lookSrc }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding-top:2px;border-top:1px solid #ddd7c7;font-size:10px;color:#6b6355">{{ lookSrc }}</div>
+                </sc-if>
               </div>
             </div>
           </sc-if>
@@ -211,6 +221,7 @@
   <div style="flex:none;display:flex;align-items:center;gap:8px;padding:3px 7px;background:linear-gradient(180deg,#e2ded2,#d2cec2);border-top:1px solid #fff">
     <span style="flex:none;padding:1px 6px;border:1px solid #bdb7a8;border-top-color:#a8a293;color:#3a352d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">{{ bookLine }}</span>
     <span ref="{{ rChap }}" style="flex:1;min-width:0;padding:1px 6px;border:1px solid #bdb7a8;border-top-color:#a8a293;color:#3a352d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ chapLine }}</span>
+    <span title="{{ dictTitle }}" style="flex:none;padding:1px 6px;border:1px solid #bdb7a8;border-top-color:#a8a293;color:#3a352d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px">{{ dictLine }}</span>
     <span style="flex:none;display:flex;align-items:center;gap:6px;padding:1px 6px;border:1px solid #bdb7a8;border-top-color:#a8a293;color:#3a352d">
       <span ref="{{ rFolio }}" style="white-space:nowrap">{{ folio }}</span>
       <span style="width:70px;height:7px;background:#c6c0b1;border:1px solid #a8a293;overflow:hidden">
@@ -221,7 +232,7 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:720},&quot;turnMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:420,&quot;min&quot;:150,&quot;max&quot;:900,&quot;step&quot;:10,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Page turn&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:720},&quot;turnMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:420,&quot;min&quot;:150,&quot;max&quot;:900,&quot;step&quot;:10,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Page turn&quot;},&quot;dictUrl&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;assets/dictionary.mobi&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Dictionary&quot;}}">
 const SIG_EOCD = 0x06054b50, SIG_CEN = 0x02014b50;
 const FAMILIES = [
   { n: 'Literata', v: 'Literata, Georgia, serif' },
@@ -240,12 +251,14 @@ class Component extends DCLogic {
     counts: [], starts: [], total: 0,
     page: 0, spread: 2, fontSize: 17, family: FAMILIES[0].v,
     panel: null, query: '', results: [], marks: [],
-    menu: null, box: null, look: null
+    menu: null, box: null, look: null, dictStatus: '', dictErr: '', dictStale: false
   };
+
+  dict = null;
 
   R = ['rFile','rFind','rStage','rBook','rShadow','rS1','rS1i','rS1f','rS2','rS2i','rS2f','rS2g',
        'rLeaf','rLf','rLfi','rLff','rLb','rLbi','rLbf','rZL','rZR','rEL','rER','rMeas','rProg','rBusy','rFolio','rChap',
-       'rS1d','rS2d','rLfd','rLbd','rHL','rHR','rData','rLook']
+       'rS1d','rS2d','rLfd','rLbd','rHL','rHR','rData','rLook','rDict']
     .reduce((a, k) => (a[k] = React.createRef(), a), {});
 
   turning = false; riffle = null; key = '';
@@ -258,6 +271,7 @@ class Component extends DCLogic {
     window.addEventListener('keydown', this.onKey);
     window.addEventListener('mousedown', this.shutMenu, true);
     this.relayout();
+    this.restoreDict();
   }
   componentWillUnmount() {
     if (this.ro) this.ro.disconnect();
@@ -998,7 +1012,13 @@ class Component extends DCLogic {
     if (bk && sel.rangeCount) {
       const r = sel.getRangeAt(0).getBoundingClientRect(), o = bk.getBoundingClientRect();
       x = Math.max(6, Math.min(o.width - 270, r.left - o.left + r.width / 2 - 132));
-      y = Math.min(o.height - 60, r.bottom - o.top + 8);
+      y = r.bottom - o.top + 8;
+      var aTop = r.top - o.top, aBot = r.bottom - o.top;
+      this.setState({ look: { word, x, y, aTop, aBot, note: 'Looking up…', entries: [] } }, () => {
+        this.placeLook();
+        this.fetchDef(word);
+      });
+      return;
     }
     this.setState({ look: { word, x, y, note: 'Looking up…', entries: [] } }, () => {
       this.placeLook();
@@ -1007,8 +1027,19 @@ class Component extends DCLogic {
   };
 
   placeLook() {
-    const el = this.R.rLook.current, l = this.state.look;
-    if (el && l) { el.style.left = Math.round(l.x) + 'px'; el.style.top = Math.round(l.y) + 'px'; }
+    const el = this.R.rLook.current, l = this.state.look, bk = this.R.rBook.current;
+    if (!el || !l) return;
+    let y = l.y;
+    if (bk && l.aBot != null) {
+      const H = bk.getBoundingClientRect().height, h = el.offsetHeight || 120, pad = 8;
+      // prefer below the word; flip above when it would run past the page edge
+      if (l.aBot + pad + h > H - pad) {
+        const above = l.aTop - pad - h;
+        y = above >= pad ? above : Math.max(pad, H - pad - h);
+      } else y = l.aBot + pad;
+    }
+    el.style.left = Math.round(l.x) + 'px';
+    el.style.top = Math.round(y) + 'px';
   }
 
   // dictionaryapi.dev is the source of record; the built-in model helper only
@@ -1021,6 +1052,7 @@ class Component extends DCLogic {
     };
     let entries = null, why = '';
     const sources = [
+      () => this.defFromMobi(word),
       () => this.defFromApi(word),
       () => this.defFromWiktionary(word),
       () => this.defFromModel(word)
@@ -1035,6 +1067,133 @@ class Component extends DCLogic {
     else show('No definition found for “' + word + '”.' + (why ? ' (' + why + ')' : ''), []);
   }
 
+  /* ---- local .mobi dictionary ---- */
+
+  dictLine() {
+    if (this.state.dictErr) return 'Dictionary failed — see panel';
+    const d = this.state.dictStatus;
+    if (d) return d;
+    if (this.dict) return this.dict.name + ' · ' + this.dict.count.toLocaleString() + ' words';
+    return 'No local dictionary';
+  }
+
+  dictTitle() {
+    if (this.dict) return 'Definitions come from ' + this.dict.name + ', stored on this machine.';
+    return 'File ▸ Load .mobi dictionary… to look words up offline.';
+  }
+
+  async loadDictModule() {
+    if (!this._dictMod) this._dictMod = import('./mobi-dict.js');
+    return this._dictMod;
+  }
+
+  // Restores a dictionary parsed in an earlier session straight out of IndexedDB;
+  // the .mobi file itself is never kept, only the index and text stream.
+  async restoreDict() {
+    try {
+      const mod = await this.loadDictModule();
+      const keys = await mod.cachedDictionaries();
+      const current = keys.filter((k) => String(k).endsWith(':v' + mod.PARSER_VERSION));
+      if (!current.length) {
+        if (keys.length) {
+          await mod.forgetDictionaries();
+          this.setState({ dictErr: '', dictStatus: '', dictStale: true });
+        }
+        this.loadBundledDict();
+        return;
+      }
+      // Filenames may contain colons, so the size is everything after the LAST one.
+      const key = String(current[0]).replace(/:v\d+$/, '');
+      const cut = key.lastIndexOf(':');
+      const name = cut > 0 ? key.slice(0, cut) : key;
+      const size = cut > 0 ? Number(key.slice(cut + 1)) || 0 : 0;
+      this.setState({ dictStatus: 'Loading dictionary…' });
+      this.dict = await mod.loadMobiDictionary({ name, size, arrayBuffer: () => Promise.reject(new Error('cache miss')) },
+        (m) => this.setState({ dictStatus: m }));
+      this.setState({ dictStatus: '' });
+    } catch (e) {
+      this.setState({ dictStatus: '' });
+    }
+  }
+
+  // A .mobi shipped alongside the app (deploy/…) is fetched once, parsed, and
+  // cached; later sessions read the cache and never touch the network.
+  async loadBundledDict() {
+    const url = this.props.dictUrl ?? 'assets/dictionary.mobi';
+    if (!url || this.dict) return;
+    const name = decodeURIComponent(String(url).split('/').pop().split('?')[0]) || 'dictionary.mobi';
+    let size = 0;
+    try {
+      const h = await fetch(url, { method: 'HEAD' });
+      if (!h.ok) return;                       // not shipped with this build
+      size = Number(h.headers.get('content-length')) || 0;
+    } catch (e) { return; }
+
+    const download = async () => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('dictionary download failed (' + res.status + ')');
+      const total = Number(res.headers.get('content-length')) || size;
+      if (!res.body || !total) return res.arrayBuffer();
+      const reader = res.body.getReader(), parts = [];
+      let got = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        parts.push(value); got += value.length;
+        this.setState({ dictStatus: 'Downloading dictionary… ' + Math.round(got / total * 100) + '%' });
+      }
+      const out = new Uint8Array(got);
+      let at = 0;
+      for (const p of parts) { out.set(p, at); at += p.length; }
+      return out.buffer;
+    };
+
+    this.setState({ dictStatus: 'Fetching dictionary…', dictErr: '' });
+    try {
+      const mod = await this.loadDictModule();
+      this.dict = await mod.loadMobiDictionary({ name, size, arrayBuffer: download },
+        (m) => this.setState({ dictStatus: m }));
+      this.setState({ dictStatus: '', dictErr: '', dictStale: false });
+    } catch (err) {
+      this.dict = null;
+      this.setState({ dictStatus: '', dictErr: err && err.message ? err.message : String(err) });
+    }
+  }
+
+  onDictPick = async (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    this.loadDict(f);
+  };
+
+  loadDict = async (f) => {
+    this.setState({ panel: 'dict', dictStatus: 'Opening ' + f.name + '…', dictErr: '', dictStale: false });
+    try {
+      const mod = await this.loadDictModule();
+      const dict = await mod.loadMobiDictionary(f, (m) => this.setState({ dictStatus: m }));
+      this.dict = dict;
+      this.setState({ dictStatus: '', dictErr: '' });
+    } catch (err) {
+      this.dict = null;
+      this.setState({ dictStatus: '', dictErr: err && err.message ? err.message : String(err) });
+    }
+  };
+
+  async forgetDict() {
+    this.dict = null;
+    this.setState({ dictErr: '' });
+    try { const mod = await this.loadDictModule(); await mod.forgetDictionaries(); } catch (e) { /* nothing to clear */ }
+    this.setState({ dictStatus: '' });
+  }
+
+  async defFromMobi(word) {
+    if (!this.dict) return null;
+    const hit = this.dict.lookup(word);
+    if (!hit) return null;
+    return hit.senses.slice(0, 6).map((d) => ({ pos: d.pos || '', text: d.text, src: this.dict.name + ' (local)' }));
+  }
+
   async defFromModel(word) {
     if (!(window.claude && window.claude.complete)) return null;
     const out = await window.claude.complete({
@@ -1045,7 +1204,7 @@ class Component extends DCLogic {
     const m = String(out || '').match(/\{[\s\S]*\}/);
     if (!m) return null;
     const j = JSON.parse(m[0]);
-    return (j.defs || []).filter((d) => d && d.text).slice(0, 3).map((d) => ({ pos: d.pos || '', text: d.text }));
+    return (j.defs || []).filter((d) => d && d.text).slice(0, 3).map((d) => ({ pos: d.pos || '', text: d.text, src: 'written on request' }));
   }
 
   // Wiktionary-backed second source, in case dictionaryapi.dev is unreachable.
@@ -1059,7 +1218,7 @@ class Component extends DCLogic {
       const senses = e.senses || e.definitions || [];
       (Array.isArray(senses) ? senses : []).forEach((sn) => {
         const t = typeof sn === 'string' ? sn : (sn.definition || sn.text || '');
-        if (t && out.length < 4) out.push({ pos, text: t });
+        if (t && out.length < 4) out.push({ pos, text: t, src: 'Wiktionary' });
       });
     });
     return out;
@@ -1089,7 +1248,7 @@ class Component extends DCLogic {
     (Array.isArray(data) ? data : []).forEach((e) => {
       (e.meanings || []).forEach((mn) => {
         (mn.definitions || []).slice(0, 2).forEach((d) => {
-          if (out.length < 5 && d.definition) out.push({ pos: mn.partOfSpeech || '', text: d.definition });
+          if (out.length < 5 && d.definition) out.push({ pos: mn.partOfSpeech || '', text: d.definition, src: 'dictionaryapi.dev' });
         });
       });
     });
@@ -1173,7 +1332,9 @@ class Component extends DCLogic {
   onDrop = (e) => {
     e.preventDefault();
     const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) this.loadEpub(f);
+    if (!f) return;
+    if (/\.(mobi|prc|azw3?)$/i.test(f.name)) this.loadDict(f);
+    else this.loadEpub(f);
   };
 
   /* ---------- menus / toolbar ---------- */
@@ -1195,6 +1356,11 @@ class Component extends DCLogic {
     if (a === 'open') { if (this.R.rFile.current) this.R.rFile.current.click(); }
     else if (a === 'export') this.exportData();
     else if (a === 'import') { if (this.R.rData.current) this.R.rData.current.click(); }
+    else if (a === 'dict') {
+      this.setState({ panel: 'dict' });
+      if (this.R.rDict.current) this.R.rDict.current.click();
+    }
+    else if (a === 'nodict') this.forgetDict();
     else if (a === 'close') { (this.blobs || []).forEach(URL.revokeObjectURL); this.blobs = []; this.key = ''; this.setState({ stage: 'empty', chapters: [], toc: [], text: [], total: 0, page: 0, results: [], panel: null, title: '', author: '' }); }
     else if (a === 'toc') this.setState({ panel: st.panel === 'toc' ? null : 'toc' });
     else if (a === 'marks') this.setState({ panel: st.panel === 'marks' ? null : 'marks' });
@@ -1233,7 +1399,9 @@ class Component extends DCLogic {
         { act: 'open', label: 'Open book…', hint: '' },
         { act: 'close', label: 'Close book', hint: '' },
         { act: 'export', label: 'Export reading data…', hint: '' },
-        { act: 'import', label: 'Import reading data…', hint: '' }
+        { act: 'import', label: 'Import reading data…', hint: '' },
+        { act: 'dict', label: 'Load .mobi dictionary…', hint: '' },
+        { act: 'nodict', label: 'Forget dictionary', hint: '' }
       ] },
       { id: 'view', label: 'View', items: [
         { act: 'spread', label: two ? 'Single page' : 'Two-page spread', hint: '' },
@@ -1252,13 +1420,14 @@ class Component extends DCLogic {
     ].map((m) => ({
       id: m.id, label: m.label, open: s.menu === m.id, btn: btn(s.menu === m.id),
       items: m.items.map((it) => {
-        const always = it.act === 'open' || it.act === 'export' || it.act === 'import';
+        const always = it.act === 'open' || it.act === 'export' || it.act === 'import'
+          || it.act === 'dict' || it.act === 'nodict';
         const dis = !reading && !always;
         return { act: it.act, label: it.label, hint: it.hint, style: item(dis), dis, live: !dis };
       })
     }));
 
-    let rows = [], panelTitle = '', emptyText = '';
+    let rows = [], panelTitle = '', emptyText = '', noteText = '', errText = '';
     if (s.panel === 'toc') {
       panelTitle = 'CONTENTS';
       rows = s.toc.map((t) => {
@@ -1270,6 +1439,13 @@ class Component extends DCLogic {
       panelTitle = 'BOOKMARKS';
       rows = s.marks.map((m) => ({ kind: 'mark', p: m.p, ch: 0, idx: 0, label: m.label, right: String(m.p + 1), wrap: 'nowrap', style: row(m.p === s.page) }));
       emptyText = 'No bookmarks yet. Use Bookmark page to add one.';
+    } else if (s.panel === 'dict') {
+      panelTitle = 'DICTIONARY';
+      if (s.dictErr) errText = 'Could not open that dictionary: ' + s.dictErr;
+      else if (s.dictStatus) noteText = s.dictStatus;
+      else if (this.dict) noteText = this.dict.name + ' is loaded — ' + this.dict.count.toLocaleString() + ' headwords, cached on this machine. Double-click any word in the book to look it up.';
+      else if (s.dictStale) noteText = 'The cached dictionary was built by an older, buggy version of the parser, so it has been discarded. Drop the .mobi file in again to rebuild it.';
+      else noteText = 'No dictionary loaded. Drag a .mobi dictionary onto this window, or use File ▸ Load .mobi dictionary…';
     } else if (s.panel === 'find') {
       panelTitle = 'FIND — ' + s.results.length + (s.results.length === 60 ? '+ hits' : ' hits');
       rows = s.results.map((r) => ({ kind: 'find', p: 0, ch: r.ch, idx: r.idx, label: r.snippet, right: '', wrap: 'normal', style: row(false) }));
@@ -1286,9 +1462,11 @@ class Component extends DCLogic {
       tb: tbBase(false), tbSq: tbBase(false), tbTOC: tbBase(s.panel === 'toc'), tbMarks: tbBase(s.panel === 'marks'),
       spreadLabel: two ? 'Two pages' : 'One page',
       markLabel: marked ? 'Remove bookmark' : 'Bookmark page',
-      hasPanel: !!s.panel, panelTitle, panelRows: rows, panelEmpty: !!s.panel && rows.length === 0, panelEmptyText: emptyText,
+      hasPanel: !!s.panel, panelTitle, panelRows: rows,
+      panelEmpty: !!s.panel && rows.length === 0 && !noteText && !errText, panelEmptyText: emptyText,
+      panelNote: !!noteText, panelNoteText: noteText, panelErr: !!errText, panelErrText: errText,
       bookLine: s.title ? (s.title + (s.author ? ' — ' + s.author : '')) : 'No book open',
-      chapLine: reading && loc ? (this.chapLabel(loc.ch) || '') : (s.err || 'Drop an .epub to begin'),
+      chapLine: reading && loc ? (this.chapLabel(loc.ch) || '') : (s.err || 'Drop an .epub or .mobi dictionary to begin'),
       folio,
       onDragOver: this.onDragOver, onDrop: this.onDrop, onPick: this.onPick,
       onMenu: this.onMenu, onMenuOver: this.onMenuOver, onAct: this.onAct,
@@ -1301,9 +1479,13 @@ class Component extends DCLogic {
       rFolio: this.R.rFolio, rChap: this.R.rChap,
       rS1d: this.R.rS1d, rS2d: this.R.rS2d, rLfd: this.R.rLfd, rLbd: this.R.rLbd,
       rHL: this.R.rHL, rHR: this.R.rHR, rData: this.R.rData, onImport: this.onImport,
+      rDict: this.R.rDict, onDictPick: this.onDictPick,
+      dictLine: this.dictLine(), dictTitle: this.dictTitle(),
       rLook: this.R.rLook, onLook: this.onLook,
       hasLook: !!s.look, lookWord: s.look ? s.look.word : '',
       lookNote: s.look ? s.look.note : '', lookEntries: s.look ? s.look.entries : [],
+      lookSrc: s.look && s.look.entries && s.look.entries.length && s.look.entries[0].src
+        ? 'Source: ' + s.look.entries[0].src : '',
       onEarIn: this.onEarIn, onEarOut: this.onEarOut, onEarClick: this.onEarClick
     };
   }
