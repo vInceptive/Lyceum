@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0} a{color:#9c4a32} a:hover{color:#6e2f1f} [data-mc] ::selection{background:#e8c9b8}</style>
+</helmet>
+<div data-mc="1" style="position:absolute;inset:0;display:flex;background:#f5f1e9;color:#2f2a26;font-family:'EB Garamond',Georgia,serif;overflow:hidden;user-select:text;-webkit-user-select:text">
+
+  <aside style="flex:none;width:236px;display:flex;flex-direction:column;background:#1d2a31;color:#ece4d4;overflow-y:auto">
+    <div style="padding:22px 20px 18px;border-bottom:1px solid rgba(236,228,212,.12)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;color:#a7b3b0">MONTE CRISTO</div>
+      <div style="font-size:24px;line-height:1.1;margin-top:6px">The Faria Method</div>
+      <div style="font-size:14px;font-style:italic;color:#b9c2bf;margin-top:4px">A course for Number 34</div>
+    </div>
+
+    <div style="padding:18px 20px;border-bottom:1px solid rgba(236,228,212,.12)">
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span style="font-size:48px;line-height:1;font-variant-numeric:lining-nums">{{ daysLeft }}</span>
+        <span style="font-size:15px;line-height:1.2;color:#cfd6d3">{{ daysLeftLabel }}</span>
+      </div>
+      <div style="height:3px;margin-top:14px;background:rgba(236,228,212,.14);border-radius:2px;overflow:hidden">
+        <div style="{{ voyageBar }}"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:7px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.8px;color:#a7b3b0">
+        <span>{{ voyagePctLabel }}</span>
+        <span>{{ arrivalLabel }}</span>
+      </div>
+    </div>
+
+    <div style="padding:16px 20px;border-bottom:1px solid rgba(236,228,212,.12)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.6px;color:#a7b3b0">RANK</div>
+      <div style="font-size:19px;line-height:1.2;margin-top:5px">{{ rankName }}</div>
+      <div style="display:flex;gap:4px;margin-top:10px">
+        <sc-for list="{{ rankPips }}" as="p" hint-placeholder-count="8">
+          <span style="{{ p.style }}"></span>
+        </sc-for>
+      </div>
+      <div style="font-size:13px;font-style:italic;line-height:1.35;color:#b9c2bf;margin-top:8px;text-wrap:pretty">{{ rankNext }}</div>
+    </div>
+
+    <nav style="flex:1;display:flex;flex-direction:column;gap:1px;padding:10px 8px">
+      <button data-view="office" onClick="{{ go }}" style="{{ officeNav }}">
+        <span style="flex:none;width:30px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.5px;opacity:.7">✦</span>
+        <span style="flex:1;min-width:0">The Daily Office</span>
+        <span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:10px;opacity:.75">{{ officeCount }}</span>
+      </button>
+      <div style="height:1px;margin:8px 10px;background:rgba(236,228,212,.12)"></div>
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="10">
+        <button data-view="{{ n.id }}" onClick="{{ go }}" style="{{ n.style }}">
+          <span style="flex:none;width:30px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.5px;opacity:.7">{{ n.num }}</span>
+          <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.title }}</span>
+          <span style="{{ n.markStyle }}">{{ n.mark }}</span>
+        </button>
+      </sc-for>
+      <div style="margin:14px 10px 4px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.6px;color:#8f9c99">PORT CALLS</div>
+      <sc-for list="{{ portNav }}" as="n" hint-placeholder-count="3">
+        <button data-view="{{ n.id }}" onClick="{{ go }}" style="{{ n.style }}">
+          <span style="flex:none;width:30px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.5px;opacity:.7">{{ n.num }}</span>
+          <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.title }}</span>
+          <span style="{{ n.markStyle }}">{{ n.mark }}</span>
+        </button>
+      </sc-for>
+    </nav>
+
+    <div style="padding:14px 20px 18px;font-size:14px;font-style:italic;color:#8f9c99">Wait and hope.</div>
+  </aside>
+
+  <main ref="{{ scrollRef }}" style="flex:1;min-width:0;overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto;padding:44px 48px 64px">
+
+      <sc-if value="{{ isOffice }}" hint-placeholder-val="{{ false }}">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1.6px;color:#8a7f70">{{ todayKicker }}</div>
+        <h1 style="margin:10px 0 0;font-size:42px;font-weight:500;line-height:1.05;letter-spacing:-.3px">The Daily Office</h1>
+        <p style="margin:14px 0 0;font-size:18px;line-height:1.6;color:#4a4238;text-wrap:pretty">Seven small observances, kept every day at whatever hours the watch bill leaves you. A monk keeps his hours in any weather. So will you. Check them off as you go; the record stays on this machine.</p>
+
+        <div style="margin-top:28px;border-top:1px solid #d8cfbf">
+          <sc-for list="{{ officeItems }}" as="o" hint-placeholder-count="7">
+            <button data-office="{{ o.id }}" onClick="{{ toggleOffice }}" style="display:flex;align-items:flex-start;gap:16px;width:100%;padding:14px 4px;border:none;border-bottom:1px solid #d8cfbf;background:transparent;cursor:pointer;text-align:left;font-family:inherit;color:inherit" style-hover="background:#efe9dd">
+              <span style="{{ o.box }}">{{ o.tick }}</span>
+              <span style="flex:1;min-width:0">
+                <span style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+                  <span style="{{ o.nameStyle }}">{{ o.name }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.6px;color:#8a7f70">{{ o.time }}</span>
+                </span>
+                <span style="display:block;margin-top:3px;font-size:15.5px;line-height:1.45;color:#5a5146">{{ o.desc }}</span>
+              </span>
+            </button>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:26px;padding:20px 22px;background:#ece5d8;border-radius:3px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.6px;color:#8a7f70">THIS WEEK'S MAXIM · FOR THE MEMORY</div>
+          <div style="margin-top:8px;font-size:20px;font-style:italic;line-height:1.45;color:#2f2a26;text-wrap:pretty">{{ weekMaxim }}</div>
+          <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8a7f70">{{ weekMaximBy }}</div>
+        </div>
+
+        <div style="margin-top:34px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1.6px;color:#8a7f70">THE FIFTY-SIX DAYS</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.6px;color:#5a5146">{{ streakLabel }}</div>
+        </div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;max-width:320px">
+          <sc-for list="{{ grid }}" as="g" hint-placeholder-count="56">
+            <span title="{{ g.label }}" style="{{ g.style }}"></span>
+          </sc-for>
+        </div>
+        <div style="margin-top:10px;font-size:14px;font-style:italic;color:#8a7f70">One row per lesson. A day fills in as you keep its hours.</div>
+      </sc-if>
+
+      <sc-if value="{{ isLesson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1.6px;color:#8a7f70">{{ L.kicker }}</span>
+          <sc-if value="{{ L.isNow }}" hint-placeholder-val="{{ false }}">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.4px;color:#fff;background:#9c4a32;padding:3px 7px;border-radius:2px">THIS WEEK</span>
+          </sc-if>
+        </div>
+        <h1 style="margin:10px 0 0;font-size:44px;font-weight:500;line-height:1.05;letter-spacing:-.3px;text-wrap:balance">{{ L.title }}</h1>
+        <div style="margin-top:6px;font-size:20px;font-style:italic;color:#9c4a32">{{ L.subject }}</div>
+
+        <div style="margin-top:22px;padding-top:16px;border-top:1px solid #d8cfbf;display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.4px;color:#8a7f70;padding-top:4px">IN THE CHÂTEAU</span>
+          <span style="font-size:16px;line-height:1.55;color:#5a5146;text-wrap:pretty">{{ L.parallel }}</span>
+        </div>
+
+        <figure style="margin:30px 0 0;padding:4px 0 4px 24px;border-left:2px solid #2f2a26">
+          <blockquote style="margin:0;font-size:23px;font-style:italic;line-height:1.4;color:#2f2a26;text-wrap:pretty">{{ L.maxim }}</blockquote>
+          <figcaption style="margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.4px;color:#8a7f70">{{ L.maximBy }}</figcaption>
+        </figure>
+
+        <div style="margin-top:36px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1.6px;color:#8a7f70">FROM THE ABBÉ</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ L.paras }}" as="para" hint-placeholder-count="4">
+            <p style="margin:0;font-size:18.5px;line-height:1.62;color:#2f2a26;text-wrap:pretty;hyphens:auto">{{ para }}</p>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:38px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px">
+          <div>
+            <div style="padding-bottom:8px;border-bottom:1px solid #2f2a26;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1.6px;color:#2f2a26">READING</div>
+            <sc-for list="{{ L.reading }}" as="r" hint-placeholder-count="2">
+              <div style="padding:12px 0;border-bottom:1px solid #d8cfbf">
+                <div style="font-size:17px;font-weight:500;line-height:1.3">{{ r.t }}</div>
+                <div style="margin-top:3px;font-size:15px;line-height:1.45;color:#5a5146;text-wrap:pretty">{{ r.d }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div>
+            <div style="padding-bottom:8px;border-bottom:1px solid #2f2a26;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1.6px;color:#2f2a26">{{ L.practiceHead }}</div>
+            <sc-for list="{{ L.practice }}" as="pr" hint-placeholder-count="2">
+              <div style="padding:12px 0;border-bottom:1px solid #d8cfbf;font-size:16px;line-height:1.45;color:#2f2a26;text-wrap:pretty">{{ pr }}</div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="margin-top:40px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:1px solid #2f2a26">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1.6px;color:#2f2a26">{{ L.hwHead }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5a5146">{{ L.hwCount }}</span>
+        </div>
+        <sc-for list="{{ L.hw }}" as="h" hint-placeholder-count="3">
+          <button data-hw="{{ h.key }}" onClick="{{ toggleHw }}" style="display:flex;align-items:flex-start;gap:16px;width:100%;padding:16px 4px;border:none;border-bottom:1px solid #d8cfbf;background:transparent;cursor:pointer;text-align:left;font-family:inherit;color:inherit" style-hover="background:#efe9dd">
+            <span style="{{ h.box }}">{{ h.tick }}</span>
+            <span style="flex:1;min-width:0">
+              <span style="{{ h.titleStyle }}">{{ h.t }}</span>
+              <span style="display:block;margin-top:3px;font-size:15.5px;line-height:1.45;color:#5a5146;text-wrap:pretty">{{ h.d }}</span>
+            </span>
+          </button>
+        </sc-for>
+
+        <div style="margin-top:36px;display:flex;justify-content:space-between;gap:12px">
+          <sc-if value="{{ L.hasPrev }}" hint-placeholder-val="{{ false }}">
+            <button data-view="{{ L.prevId }}" onClick="{{ go }}" style="padding:10px 0;border:none;background:transparent;cursor:pointer;font-family:inherit;font-size:16px;color:#5a5146;text-align:left" style-hover="color:#9c4a32">← {{ L.prevTitle }}</button>
+          </sc-if>
+          <span style="flex:1"></span>
+          <sc-if value="{{ L.hasNext }}" hint-placeholder-val="{{ false }}">
+            <button data-view="{{ L.nextId }}" onClick="{{ go }}" style="padding:10px 0;border:none;background:transparent;cursor:pointer;font-family:inherit;font-size:16px;color:#5a5146;text-align:right" style-hover="color:#9c4a32">{{ L.nextTitle }} →</button>
+          </sc-if>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:720},&quot;arrivalDate&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-11-24&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Voyage&quot;}}">
+class Component extends DCLogic {
+  state = { view: null, hw: {}, office: {} };
+  KEY = 'montecarlo.faria.v1';
+  scrollRef = React.createRef();
+  DAY = 86400000;
+
+  NUMS = ['Prologue', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'Epilogue'];
+
+  RANKS = [
+    { name: 'Number 34', note: 'A prisoner of the Château d\u2019If.' },
+    { name: 'Sinbad the Sailor', note: 'Out of the sack and onto a smuggler\u2019s deck.' },
+    { name: 'Abb\u00e9 Busoni', note: 'The priest who hears confessions and learns everything.' },
+    { name: 'Lord Wilmore', note: 'The Englishman with money and patience.' },
+    { name: 'The Count of Monte Cristo', note: 'All eight lessons complete. Go ashore.' }
+  ];
+
+  OFFICE = [
+    { id: 'matins', name: 'Matins', time: 'ON WAKING \u00b7 5 MIN', desc: 'One line in the notebook: what happened yesterday, what you will do today.' },
+    { id: 'tunnel', name: 'The Tunnel', time: '30 MIN', desc: 'Train the body. Log what you did and one number.' },
+    { id: 'lesson', name: 'The Lesson', time: '45 MIN', desc: 'The week\u2019s subject: language, money, writing or craft.' },
+    { id: 'memory', name: 'The Memory', time: '2 MIN', desc: 'Recite this week\u2019s maxim without looking.' },
+    { id: 'ledger', name: 'The Ledger', time: '2 MIN', desc: 'Every dollar in or out, written down.' },
+    { id: 'vespers', name: 'Vespers', time: '20 PAGES', desc: 'Twenty pages of the week\u2019s prescribed reading.' },
+    { id: 'examen', name: 'Examen', time: 'BEFORE SLEEP', desc: 'One thing done well today. One thing to fix tomorrow.' }
+  ];
+
+  LESSONS = [
+    { title: 'Number 27 Knocks', subject: 'Orientation',
+      parallel: 'Dant\u00e8s hears scratching in the wall of his cell. It is an old priest who has spent years digging toward the sea, miscalculated, and come out in a stranger\u2019s room.',
+      maxim: 'To learn is not to know; there are the learners and the learned. Memory makes the one, philosophy the other.', maximBy: 'ABB\u00c9 FARIA',
+      paras: [
+        'You will forgive an old man for coming through the wall. I miscalculated my tunnel by some fifteen feet and it brought me to you instead of to the sea. I have since decided the error was the best thing I ever dug.',
+        'Edmond Dant\u00e8s entered the Ch\u00e2teau d\u2019If a sailor of nineteen who could read, write, and not much else. He left it fourteen years later speaking several languages, versed in mathematics, history, chemistry and philosophy, and knowing where a fortune lay. You have ten months behind you and eight weeks ahead. We will not attempt everything. We will attempt the few things that compound, and we will do them daily.',
+        'In the Ch\u00e2teau I owned no books, so I kept the ones I needed in my head. I once had some five thousand volumes and found that a hundred and fifty, well chosen, contain the whole of human knowledge. Thucydides, Xenophon, Plutarch, Livy, Tacitus, Dante, Montaigne, Shakespeare, Spinoza, Machiavelli. You will read some of these, and some books written since, that I would have added. The course has eight lessons, one a week, each with its prescribed reading. Each carries homework. I do not grade it. It is graded by the man who walks down the brow at home port, and he will know whether it was done.',
+        'Three port calls fall inside the course: Diego Garcia, Kuala Lumpur and Hawaii. Each has its own shore assignment, kept alongside whatever lesson you are in that week. Before the first lesson begins, get your materials aboard while you still have a signal. Then read the five rules and begin.'
+      ],
+      reading: [
+        { t: 'The Abb\u00e9\u2019s shelf', d: 'Sixteen books across eight lessons. Two a week: one I would have assigned in 1815, one I would have added since. Most are free or cheap as e-books.' },
+        { t: 'A notebook', d: 'Hard-bound and pocket-sized. It becomes your commonplace book and holds every piece of written homework.' }
+      ],
+      practiceHead: 'THE FIVE RULES',
+      practice: [
+        'The Office is kept every day, especially the bad ones.',
+        'Nothing here needs the internet. Download what you need while you have connectivity.',
+        'Homework is due on the seventh day. Late is permitted. Skipped is not.',
+        'Liberty is not a holiday from the Office.',
+        'Revenge is not on the syllabus.'
+      ],
+      hw: [
+        { t: 'Get the shelf and the notebook aboard', d: 'Paper or e-reader. The notebook must survive salt air.' },
+        { t: 'Download the course while you have a signal', d: 'Every book on the shelf, a language course and a flashcard app, all usable offline.' },
+        { t: 'Choose your language for Lesson III', d: 'Write it on the first page of the notebook, with the reason.' }
+      ] },
+
+    { title: 'The Deposition', subject: 'Self-examination',
+      parallel: 'Faria has Dant\u00e8s tell his story once, slowly and in order. In a single evening he names the three men who put him in the Ch\u00e2teau, from facts Dant\u00e8s had carried for years without arranging.',
+      maxim: 'If you wish to discover the author of a crime, seek first the person to whom the crime could be of use.', maximBy: 'ABB\u00c9 FARIA',
+      paras: [
+        'Before I taught Edmond a single verb, I asked him to tell me what had happened to him. He had been in his cell for years and had never once told it in order. When he did, the answer was already inside it.',
+        'Your year at sea has its own story, and you have not yet told it straight. This week you will. Not the version for your family or the one for your evaluation. The one with the days you wasted and the days you were proud of, written by hand, in order.',
+        'Then we find the three. Danglars was envy. Fernand was appetite for what another man had. Villefort was self-interest dressed as duty. You probably have no enemies in the novel\u2019s sense. You do have habits and influences that did this work on you before you left, and they are waiting on the pier. Name them now, while they are far away and easier to look at.',
+        'Last, we measure. A man who does not know where he stands cannot tell whether he has moved.'
+      ],
+      reading: [
+        { t: 'Essays \u2014 Michel de Montaigne', d: 'M. A. Screech translation. Begin with \u201cOf Solitude\u201d and \u201cOf Experience.\u201d The first man to make a study of himself, which is what the Deposition asks of you.' },
+        { t: 'Meditations \u2014 Marcus Aurelius', d: 'Gregory Hays translation. An emperor\u2019s private notebook, never meant to be read. Keep yours the same way.' }
+      ],
+      practiceHead: 'PRACTICE THIS WEEK',
+      practice: [
+        'Matins begins: one line in the notebook every morning.',
+        'Keep the full Office by the fourth day.'
+      ],
+      hw: [
+        { t: 'Write the Deposition', d: 'Two pages, by hand, in order. The deployment from the day you left.' },
+        { t: 'Name your Danglars, Fernand and Villefort', d: 'Three habits, appetites or influences that cost you most in the year before you sailed. One sentence each on how it operated.' },
+        { t: 'Take the baseline', d: 'Weight, push-ups in two minutes, a timed run or row, resting heart rate, savings balance, pages read last month. Date it. You take it again at the end.' }
+      ] },
+
+    { title: 'The Tunnel', subject: 'Body and routine',
+      parallel: 'Faria digs for years with a chisel made from the frame of his bed. He works a little every night and hides the rubble by morning.',
+      maxim: 'Hold every hour in your grasp. Lay hold of to-day\u2019s task, and you will not need to depend so much upon to-morrow\u2019s.', maximBy: 'SENECA, LETTER I',
+      paras: [
+        'I dug fifty feet through stone with tools I had to invent. It was not strength. It was a fixed hour each night and a place to hide the dirt. A tunnel is only a routine kept long enough.',
+        'You already live inside a routine more rigid than mine: the watch bill, the drills, the chow line. The mistake is to believe it belongs to the Navy. The hours between belong to you. This week you write the Office into them, with times, the way you would write a watch.',
+        'Train the body every day. Not heroically. The Count had to cut himself out of a sack in the sea at night and swim for an island, and that was paid for by years of small work in a cell. Choose training you can do in the space you have, and never miss twice.',
+        'And give something up. I gave up the hope of being released by others. You may start smaller: a game, a feed, a habit you have been feeding out of boredom. Surrender it until home port.'
+      ],
+      reading: [
+        { t: 'Letters from a Stoic \u2014 Seneca', d: 'Robin Campbell\u2019s Penguin translation. One letter a night, the way I dug: a little, every time.' },
+        { t: 'Endurance \u2014 Alfred Lansing', d: 'Shackleton\u2019s men on the ice for nearly two years, kept alive by routine as much as by courage. A sailor\u2019s book.' }
+      ],
+      practiceHead: 'PRACTICE THIS WEEK',
+      practice: [
+        'The Tunnel: thirty minutes of training every day, logged.',
+        'Lights out at a fixed time whenever the watch allows.'
+      ],
+      hw: [
+        { t: 'Write the Office into your schedule', d: 'Every practice with a time, fitted around your watches. Keep it where you sleep.' },
+        { t: 'Fourteen consecutive days of training, logged', d: 'Date, what you did, one number that got better.' },
+        { t: 'Surrender one thing until home port', d: 'Write it in the notebook with today\u2019s date.' }
+      ] },
+
+    { title: 'Tongues', subject: 'Language and memory',
+      parallel: 'Faria teaches Dant\u00e8s Italian, Spanish, English, German and modern Greek. Dant\u00e8s has a prodigious memory and learns them in the dark.',
+      maxim: 'To learn is not to know; there are the learners and the learned. Memory makes the one, philosophy the other.', maximBy: 'ABB\u00c9 FARIA',
+      paras: [
+        'The Count\u2019s fortune opened doors. His languages let him walk through them. He could be an Englishman in Rome, an Italian priest in Paris, a Maltese sailor in Marseille, and nobody thought to doubt him.',
+        'You will not learn five languages in a week, and neither did Edmond. Choose one and give it forty-five minutes a day: flashcards in the morning, reading aloud at night. By the end of this lesson you should be able to order a meal and apologize for your accent.',
+        'Your own tongue needs training too. Most men speak in filler. The Count spoke in finished sentences. Practice telling the story of your year in three minutes, aloud, until you can do it without a single \u201clike\u201d or \u201cbasically.\u201d',
+        'For memory, use the oldest method there is. Walk through your ship in your mind and leave a vivid image in each space. The reading list goes in the passageways. You will be surprised what stays.'
+      ],
+      reading: [
+        { t: 'Henry V \u2014 William Shakespeare', d: 'Read it aloud, especially the speeches before Harfleur and Agincourt. The Count could hold a room because he had listened to men who could.' },
+        { t: 'Moonwalking with Einstein \u2014 Joshua Foer', d: 'How an ordinary memory becomes an extraordinary one. It is how I carried my library into the Ch\u00e2teau. Read it before you build the palace.' }
+      ],
+      practiceHead: 'PRACTICE THIS WEEK',
+      practice: [
+        'The Lesson: forty-five minutes in your chosen language.',
+        'The Memory: recite the week\u2019s maxim at Matins.'
+      ],
+      hw: [
+        { t: 'Learn 300 words', d: 'Tested cold from flashcards, ninety percent or better.' },
+        { t: 'Build the memory palace', d: 'Store the full course reading list along a route through your ship. Recite it without notes to a shipmate.' },
+        { t: 'The three-minute account', d: 'Tell the story of your deployment aloud, recorded or to a witness, with no filler words.' }
+      ] },
+
+    { title: 'The Treasure of Spada', subject: 'Money',
+      parallel: 'Faria knows where Cardinal Spada\u2019s fortune is buried. The jailers think him mad for speaking of it. He gives Dant\u00e8s the map before he dies.',
+      maxim: 'It is not the man who has too little, but the man who craves more, that is poor.', maximBy: 'SENECA, LETTER II',
+      paras: [
+        'They called me the mad priest because I kept offering the governor millions for my freedom. I was not mad. I simply knew the number, which is more than most men with money can say.',
+        'You are about to come home with what may be the largest sum you have ever held at once: months of pay with little to spend it on. Sailors are separated from this money quickly and in the same few ways. The car, the bar, the friend with a plan. The Count spent his fortune the way a general spends an army, toward an objective, never out of boredom.',
+        'So we do the arithmetic now, at sea, while nothing is for sale. Every account and every debt, to the dollar. Then we divide the treasure into chests before you land, and each chest gets a job.',
+        'You may spend. The Count lived magnificently. But he decided in advance what the magnificence was for.'
+      ],
+      reading: [
+        { t: 'The Psychology of Money \u2014 Morgan Housel', d: 'Short chapters. The one on \u201cenough\u201d is the lesson. The Count bought time, information and loyalty, rarely things.' },
+        { t: 'The Simple Path to Wealth \u2014 J. L. Collins', d: 'Written as letters to a daughter. Plain arithmetic for the Ship chest.' }
+      ],
+      practiceHead: 'PRACTICE THIS WEEK',
+      practice: [
+        'The Ledger: two minutes a day, every dollar in or out.',
+        'Price nothing you do not intend to buy.'
+      ],
+      hw: [
+        { t: 'The net worth statement', d: 'Every account, every debt, every recurring bill, to the dollar. One page.' },
+        { t: 'Divide the treasure into three chests', d: 'The Fortress: emergency fund, untouchable. The Ship: retirement and investment. The Feast: one homecoming spend you choose now, with a ceiling.' },
+        { t: 'Write the waiting rule', d: 'For thirty days after landing, nothing over a threshold you set without a 48-hour wait. Sign it.' }
+      ] },
+
+    { title: 'Linen Scrolls', subject: 'History and philosophy',
+      parallel: 'Faria writes a treatise on the monarchy of Italy on strips of linen torn from his shirts, in ink he made himself. It is the work of a man who will not let his mind shrink to the size of his cell.',
+      maxim: 'Some things are in our control and others not.', maximBy: 'EPICTETUS, ENCHIRIDION I',
+      paras: [
+        'I knew some hundred and fifty books by heart when they locked me away, and I reread them in my head every few years. A mind that has read widely is never entirely in prison. It keeps company.',
+        'Deployment narrows a man\u2019s world to a hull, a schedule and the rumors of the mess decks. History widens it again. It tells you that men have been gone longer, lost more, and come back better. Philosophy tells you what to do about the part you cannot change.',
+        'This week you write your own treatise. Choose the one subject you understand better than anyone aboard: an engine, a system, a game, a city. Write a thousand words on it for a stranger who is intelligent and knows nothing.',
+        'And answer one question, in one paragraph and no more: what are you returning for?'
+      ],
+      reading: [
+        { t: 'Parallel Lives \u2014 Plutarch', d: 'From my own shelf. Start with Themistocles and Alcibiades: two exiles, and what each made of it.' },
+        { t: 'Man\u2019s Search for Meaning \u2014 Viktor Frankl', d: 'A man who survived far worse than a cell by knowing what he was surviving for.' }
+      ],
+      practiceHead: 'PRACTICE THIS WEEK',
+      practice: [
+        'Commonplace book: copy one passage a day by hand.',
+        'Read your returning paragraph at Examen.'
+      ],
+      hw: [
+        { t: 'Your treatise on linen', d: 'One thousand words on the subject you know best, written for an intelligent stranger.' },
+        { t: 'Ten passages copied by hand', d: 'From any course reading, into the commonplace book.' },
+        { t: 'What are you returning for?', d: 'One paragraph. Read it to yourself once a day for the rest of the course.' }
+      ] },
+
+    { title: 'Ink From Soot', subject: 'Craft',
+      parallel: 'From fish cartilage Faria makes pens. From soot and wine, ink. From the fat of his meals, a lamp. He shows Dant\u00e8s a knife ground from a candlestick.',
+      maxim: 'Nothing, Lucilius, is ours, except time.', maximBy: 'SENECA, LETTER I',
+      paras: [
+        'Everything in my cell was made from something that was not meant for it. That is not a hardship; it is the whole of craft. A man who can make things from what is within reach is never poor and seldom bored.',
+        'You have something aboard you could build: a program, an essay, a drawing, a repair, a tool that saves your division an hour a week. You have probably started it. This week you finish it and hand it to someone. Unshipped work is only a rumor.',
+        'Make the time the way I made my lamp, from scraps. Four blocks of ninety minutes, nothing else open, nobody talking. The hours are there once you stop spending them in pieces.',
+        'Then teach something. I became a better scholar in the years I taught Edmond than in all the years I studied alone.'
+      ],
+      reading: [
+        { t: 'Shop Class as Soulcraft \u2014 Matthew B. Crawford', d: 'A philosopher who left an office to repair motorcycles. On why making things with your hands sharpens the mind.' },
+        { t: 'Deep Work \u2014 Cal Newport', d: 'The case for the ninety-minute block. My lamp burned for a few hours a night; I did not waste them.' }
+      ],
+      practiceHead: 'PRACTICE THIS WEEK',
+      practice: [
+        'The Lesson becomes a deep-work block: ninety minutes, four times this week.',
+        'Keep a list of what you finished, not what you started.'
+      ],
+      hw: [
+        { t: 'Ship one thing', d: 'Finish a project begun aboard and give it to someone who will use it.' },
+        { t: 'Four 90-minute blocks, logged', d: 'Date, what you worked on, what was finished.' },
+        { t: 'Teach a shipmate', d: 'One skill, start to finish, until they can do it without you.' }
+      ] },
+
+    { title: 'The Count\u2019s Manners', subject: 'Society',
+      parallel: 'Within weeks of arriving in Paris, every salon wants the Count. He has studied them all from a distance for years, and he remembers what each person cares about.',
+      maxim: 'Begin the morning by saying to thyself, I shall meet with the busy-body, the ungrateful, arrogant, deceitful, envious, unsocial.', maximBy: 'MARCUS AURELIUS, MEDITATIONS II.1',
+      paras: [
+        'People mistook the Count\u2019s charm for a gift. It was preparation. He knew who would be in the room, what each of them had lost that year, and which question would make them talk. Manners are attention made visible.',
+        'The people at home have had a year too. It did not pause because you were gone. The worst homecoming is the one where the sailor tells his stories for a week and never asks about theirs. So write to them now, and ask.',
+        'Look the part as well. The Count\u2019s clothes were never loud and always correct. Decide what you will wear the first week home and have it waiting when you arrive, fitted.',
+        'Remember names. Remember what people told you last time. Listen to the end of sentences. These cost nothing and are rarer than money.'
+      ],
+      reading: [
+        { t: 'The Prince \u2014 Niccol\u00f2 Machiavelli', d: 'From my own shelf. I was secretary to a Spada; I knew how Italian courts worked. Read it to understand rooms, not to rule them.' },
+        { t: 'How to Win Friends and Influence People \u2014 Dale Carnegie', d: 'Old and unfashionable, and still right about names and listening. The Count in Paris was a student of both books.' }
+      ],
+      practiceHead: 'PRACTICE THIS WEEK',
+      practice: [
+        'One letter or message a day to someone at home, about them.',
+        'At every meal aboard, ask one question and listen to the whole answer.'
+      ],
+      hw: [
+        { t: 'Five letters, sent', d: 'To people you intend to see. Ask about their year before you mention yours.' },
+        { t: 'The guest list', d: 'The ten people who matter. For each: what you know of their year, and one question to ask.' },
+        { t: 'The first-week wardrobe', d: 'Decided, ordered and fitted, waiting at home before you are.' }
+      ] },
+
+    { title: 'The Sack', subject: 'The escape',
+      parallel: 'When Faria dies, Dant\u00e8s takes his place in the burial sack. The guards throw it from the cliff into the sea. He cuts himself free and swims for the island of Tiboulen.',
+      maxim: 'There is neither happiness nor misery in the world; there is only the comparison of one state with another.', maximBy: 'EDMOND DANT\u00c8S',
+      paras: [
+        'My last lesson I gave by dying, which I do not recommend. Edmond went into the sea in my shroud, expecting a grave and finding the water. Your homecoming will surprise you the same way. It will be colder and louder than you imagined, and you will need to swim.',
+        'Notice what Dant\u00e8s did after he escaped. He did not rush to Marseille. He signed on with smugglers, worked, listened, and learned what fourteen years had changed before he let anyone see him. Give yourself the same patience. Watch before you act. The world has moved and so have the people in it. Do not punish them for it.',
+        'A warning, because I would be a poor teacher without one. The Count used everything I gave him for vengeance, and it nearly made a monster of him. A child died who should not have. Take the languages, the discipline and the treasure. Leave the vengeance in the Ch\u00e2teau.',
+        'Plan the first three days on a single page and the first month in three lines. Then write to the man you will be in a year, and seal it.'
+      ],
+      reading: [
+        { t: 'The Odyssey \u2014 Homer, Books 13\u201324', d: 'Emily Wilson translation. A sailor comes home in disguise and watches before he acts, as Dant\u00e8s did in Marseille.' },
+        { t: 'Inferno \u2014 Dante Alighieri', d: 'From my own shelf. Read the last canto slowly. The poet climbs out of the pit and sees the stars again.' }
+      ],
+      practiceHead: 'PRACTICE THIS WEEK',
+      practice: [
+        'Retake the baseline in the last days at sea.',
+        'Pack the notebook last so it comes off the ship in your hand.'
+      ],
+      hw: [
+        { t: 'The first 72 hours, on one page', d: 'Sleep, food, who you see, and what you will not do.' },
+        { t: 'The first 30 days, in three aims', d: 'No more than three, written as things you will have done.' },
+        { t: 'The letter to the Count', d: 'To yourself, sealed, to be opened one year after landing.' }
+      ] },
+
+    { title: 'Wait and Hope', subject: 'Home port',
+      parallel: 'The novel ends with a letter. Dant\u00e8s sails away and leaves two words for the people he loves.',
+      maxim: 'Until the day when God shall deign to reveal the future to man, all human wisdom is contained in these two words, \u201cWait and hope.\u201d', maximBy: 'EDMOND DANT\u00c8S, FINAL LETTER',
+      paras: [
+        'If you are reading this, you are close. The work is done or it is not, and either way the ship reaches the pier on the same day.',
+        'Set the baseline from the first week beside the new one. Read your Deposition. Then read the paragraph about what you are returning for. That paragraph is the whole course. Everything else was the tunnel.',
+        'Wait, because the first weeks ashore will ask you to decide things quickly, and you should not. Hope, because you have spent a year being useful to others and are about to be free to be useful to yourself.',
+        'I will not be at the pier. The Count will. Go home, my friend.'
+      ],
+      reading: [
+        { t: 'Your Deposition', d: 'Once, on the last night at sea.' },
+        { t: 'Your returning paragraph', d: 'Once, on the pier.' }
+      ],
+      practiceHead: 'ASHORE',
+      practice: [
+        'Keep the Office for thirty days after landing. Then decide which hours you keep for life.'
+      ],
+      hw: [
+        { t: 'Compare the baselines', d: 'Side by side. One sentence about each change.' },
+        { t: 'Read the Deposition on the last night at sea', d: 'Then add one line at the bottom.' },
+        { t: 'Keep the Office for thirty days ashore', d: 'The same seven hours, on land.' }
+      ] }
+  ];
+
+  PORTS = [
+    { place: 'Diego Garcia', title: 'The Island', subject: 'Solitude and the ledger',
+      parallel: 'Dant\u00e8s has the smugglers put him ashore on Monte Cristo, a rock with no town and no one on it. Alone, he finds the treasure exactly where the Abb\u00e9 said it would be.',
+      maxim: 'It is in thy power whenever thou shalt choose to retire into thyself.', maximBy: 'MARCUS AURELIUS, MEDITATIONS IV.3',
+      paras: [
+        'An atoll in the middle of the ocean, with little to buy and nowhere to go. Most of the crew will call it the dullest liberty of the deployment. Good. Edmond\u2019s most important day ashore was spent on an empty island.',
+        'Use it the way he did. Walk the island alone for an hour without music. Sit somewhere with the notebook and reread your Deposition. You wrote it at sea; see if it holds up on land.',
+        'The Ledger gets its easiest test here. Note what you spent ashore and what you were tempted by. There is not much for sale, which will tell you what you reach for out of habit.'
+      ],
+      reading: [
+        { t: 'Your Deposition', d: 'Reread it ashore, alone. Add one line.' },
+        { t: 'Meditations \u2014 Book IV', d: 'The passage on retreating into yourself was written for islands like this one.' }
+      ],
+      practiceHead: 'ASHORE',
+      practice: ['Keep the Office. Liberty is not a holiday from it.', 'One hour alone, walking, no headphones.'],
+      hw: [
+        { t: 'One hour alone on the island', d: 'Walking, no music, no conversation. Write down one thing you noticed.' },
+        { t: 'Reread the Deposition and add a line', d: 'What you see differently from dry land.' },
+        { t: 'Log every dollar spent ashore', d: 'And one thing you wanted and did not buy.' }
+      ] },
+    { place: 'Kuala Lumpur, Malaysia', title: 'Rome at Carnival', subject: 'Languages and the world',
+      parallel: 'The Count first shows himself in Rome at Carnival: crowds, masks, a dozen tongues. He moves through all of it as if he were born there, while the young Parisians around him see only the spectacle.',
+      maxim: 'To rub and polish our brains by contact with those of others.', maximBy: 'MONTAIGNE, OF THE EDUCATION OF CHILDREN',
+      paras: [
+        'This is your Rome. Malay, Chinese, Tamil and English on the same street, and a city that has been a crossroads for centuries. The Count would not spend it at a bar near the pier. Neither will you.',
+        'Learn ten phrases of Malay before you go ashore: greetings, thank you, please, how much, the check. Use every one of them. Watch how people\u2019s faces change when a stranger makes the effort.',
+        'Eat where the city eats. Ask someone who lives there what to order, and let them talk. That is the Count\u2019s manners lesson in its simplest form.',
+        'And find a bookshop. Buy one book for the shelf that you would never find at home, and write in its front page where and when you bought it.'
+      ],
+      reading: [
+        { t: 'Ten phrases of Malay', d: 'Learned before liberty, used ashore. Add them to the flashcards.' },
+        { t: 'One book bought ashore', d: 'For the shelf. Something you would not find at home.' }
+      ],
+      practiceHead: 'ASHORE',
+      practice: ['Keep the Office. Liberty is not a holiday from it.', 'Hold the waiting rule on anything over your threshold.'],
+      hw: [
+        { t: 'Ten phrases, used', d: 'Learned before you went ashore, each spoken at least once.' },
+        { t: 'One meal on a local\u2019s recommendation', d: 'Ask, listen to the whole answer, order what they say.' },
+        { t: 'One book for the shelf', d: 'Inscribed with the place and date.' }
+      ] },
+    { place: 'Hawaii', title: 'The Barber at Livorno', subject: 'The rehearsal',
+      parallel: 'At Livorno, Dant\u00e8s goes ashore and has a barber shave the beard of fourteen years. For the first time since the Ch\u00e2teau he sees his own face in a mirror, and does not recognize it.',
+      maxim: 'No man is free who is not master of himself.', maximBy: 'EPICTETUS',
+      paras: [
+        'The last stop before home is the first place that will feel like home. American soil, full signal, familiar food. It will pull you toward acting as if the voyage were over. It is not. Treat Hawaii as the dress rehearsal.',
+        'Get the haircut. Look in the mirror, as Edmond did, and take an honest measure of the man there. Retake the baseline while you are ashore and can do it properly.',
+        'You will have a signal for the first time in weeks. Decide in advance how you will use it. Call the people on your guest list; do not lose an afternoon to a feed. Test the first-72-hours plan on a small scale and see which parts you actually keep.',
+        'Pearl Harbor is there. Go to the Arizona Memorial. It is the history lesson on this voyage, and it concerns sailors who did not come home.'
+      ],
+      reading: [
+        { t: 'Your first-72-hours plan', d: 'Rehearse it ashore. Revise what did not survive contact.' },
+        { t: 'Your returning paragraph', d: 'Read it at the Memorial.' }
+      ],
+      practiceHead: 'ASHORE',
+      practice: ['Keep the Office. Liberty is not a holiday from it.', 'Phone time is scheduled, not grazed.'],
+      hw: [
+        { t: 'The haircut and the mirror', d: 'Then retake the baseline ashore and write down the numbers.' },
+        { t: 'Rehearse the first 72 hours', d: 'Run the plan in miniature. Cross out one thing that did not work.' },
+        { t: 'Visit the USS Arizona Memorial', d: 'Write one paragraph in the notebook afterward.' }
+      ] }
+  ];
+
+  componentDidMount() {
+    try {
+      const d = JSON.parse(localStorage.getItem(this.KEY) || '{}');
+      this.setState({ hw: d.hw || {}, office: d.office || {}, view: d.view != null ? d.view : null });
+    } catch (e) {}
+  }
+
+  persist(patch) {
+    this.setState(patch, () => {
+      try { localStorage.setItem(this.KEY, JSON.stringify({ hw: this.state.hw, office: this.state.office, view: this.state.view })); } catch (e) {}
+    });
+  }
+
+  arrival() {
+    const d = new Date((this.props.arrivalDate || '2026-11-24') + 'T00:00:00');
+    return isNaN(d) ? new Date('2026-11-24T00:00:00') : d;
+  }
+  midnight(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  key(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  fmt(d) { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+
+  currentLesson(start, today) {
+    const i = Math.floor((today - start) / this.DAY);
+    if (i < 0) return 0;
+    if (i >= 56) return 9;
+    return 1 + Math.floor(i / 7);
+  }
+
+  lessonDone(i) {
+    return this.LESSONS[i].hw.every((_, j) => this.state.hw[i + '-' + j]);
+  }
+
+  go = (e) => {
+    const v = e.currentTarget.dataset.view;
+    this.persist({ view: v });
+    if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0;
+  };
+
+  toggleHw = (e) => {
+    const k = e.currentTarget.dataset.hw;
+    this.persist({ hw: { ...this.state.hw, [k]: !this.state.hw[k] } });
+  };
+
+  toggleOffice = (e) => {
+    const id = e.currentTarget.dataset.office, tk = this.key(new Date());
+    const day = { ...(this.state.office[tk] || {}) };
+    day[id] = !day[id];
+    this.persist({ office: { ...this.state.office, [tk]: day } });
+  };
+
+  box(on) {
+    return 'flex:none;width:20px;height:20px;margin-top:3px;display:grid;place-items:center;border:1.5px solid ' + (on ? '#9c4a32' : '#2f2a26')
+      + ';border-radius:2px;background:' + (on ? '#9c4a32' : 'transparent') + ';color:#fff;font-size:13px;line-height:1;font-family:system-ui,sans-serif';
+  }
+
+  renderVals() {
+    const s = this.state, now = new Date(), today = this.midnight(now);
+    const arr = this.arrival(), start = new Date(arr.getTime() - 56 * this.DAY), depart = new Date(arr.getFullYear() - 1, arr.getMonth(), arr.getDate());
+    const cur = this.currentLesson(start, today);
+    const view = s.view == null ? 'L' + cur : s.view;
+    const daysLeft = Math.max(0, Math.ceil((arr - today) / this.DAY));
+    const pct = Math.min(1, Math.max(0, (now - depart) / (arr - depart)));
+
+    const done = [1, 2, 3, 4, 5, 6, 7, 8].filter((i) => this.lessonDone(i)).length;
+    const rIdx = done >= 8 ? 4 : Math.floor(done / 2);
+    const nextAt = [2, 4, 6, 8][rIdx];
+    const rankNext = rIdx >= 4 ? this.RANKS[4].note
+      : this.RANKS[rIdx].note + ' ' + (nextAt - done) + ' more lesson' + (nextAt - done === 1 ? '' : 's') + ' to ' + this.RANKS[rIdx + 1].name + '.';
+
+    const navBase = 'display:flex;align-items:center;gap:4px;width:100%;padding:8px 10px;border:none;border-radius:3px;cursor:pointer;text-align:left;font-family:inherit;font-size:15.5px;';
+    const navStyle = (on) => navBase + (on ? 'background:#ece4d4;color:#1d2a31' : 'background:transparent;color:#ece4d4');
+
+    const nav = this.LESSONS.map((l, i) => {
+      const on = view === 'L' + i, fin = this.lessonDone(i), isNow = i === cur;
+      return {
+        id: 'L' + i, num: i === 0 ? 'PRO' : i === 9 ? 'EPI' : this.NUMS[i], title: l.title,
+        style: navStyle(on),
+        mark: fin ? '\u2713' : isNow ? '\u25cf' : '',
+        markStyle: 'flex:none;width:14px;text-align:center;font-size:' + (fin ? '12px' : '8px') + ';color:' + (fin ? (on ? '#9c4a32' : '#d9a08a') : (on ? '#9c4a32' : '#d9a08a'))
+      };
+    });
+
+    const tk = this.key(today), todayMap = s.office[tk] || {};
+    const officeDone = this.OFFICE.filter((o) => todayMap[o.id]).length;
+    const officeItems = this.OFFICE.map((o) => {
+      const on = !!todayMap[o.id];
+      return { ...o, box: this.box(on), tick: on ? '\u2713' : '',
+        nameStyle: 'font-size:19px;font-weight:500;color:' + (on ? '#8a7f70' : '#2f2a26') + ';text-decoration:' + (on ? 'line-through' : 'none') + ';text-decoration-color:#b9ad9b' };
+    });
+
+    const frac = (d) => { const m = s.office[this.key(d)] || {}; return this.OFFICE.filter((o) => m[o.id]).length / this.OFFICE.length; };
+    const grid = [];
+    for (let i = 0; i < 56; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const f = frac(d), isToday = this.key(d) === tk, future = d > today;
+      const bg = f === 0 ? 'transparent' : 'color-mix(in oklab, #9c4a32 ' + Math.round(25 + f * 75) + '%, #f5f1e9)';
+      grid.push({
+        label: this.fmt(d) + (f ? ' \u00b7 ' + Math.round(f * 7) + ' of 7' : ''),
+        style: 'display:block;aspect-ratio:1;border-radius:50%;background:' + bg + ';border:1px solid ' + (isToday ? '#2f2a26' : future ? '#d8cfbf' : '#b9ad9b')
+          + (isToday ? ';box-shadow:0 0 0 2px #f5f1e9,0 0 0 3px #2f2a26' : '')
+      });
+    }
+    let streak = 0, d = new Date(today);
+    if (frac(d) < 1) d.setDate(d.getDate() - 1);
+    while (frac(d) === 1) { streak++; d.setDate(d.getDate() - 1); }
+
+    const portNav = this.PORTS.map((p, i) => {
+      const on = view === 'P' + i, fin = p.hw.every((_, j) => s.hw['P' + i + '-' + j]);
+      return { id: 'P' + i, num: ['DG', 'KL', 'HI'][i], title: p.place, style: navStyle(on), mark: fin ? '\u2713' : '',
+        markStyle: 'flex:none;width:14px;text-align:center;font-size:12px;color:' + (on ? '#9c4a32' : '#d9a08a') };
+    });
+    const wk = this.LESSONS[Math.min(Math.max(cur, 1), 8)];
+    const idx = view.charAt(0) === 'L' ? Number(view.slice(1)) : -1;
+    let L = null;
+    if (idx >= 0) {
+      const l = this.LESSONS[idx];
+      const ws = new Date(start.getTime() + (idx - 1) * 7 * this.DAY), we = new Date(ws.getTime() + 6 * this.DAY);
+      const kick = idx === 0 ? 'PROLOGUE \u00b7 BEFORE ' + this.fmt(start).toUpperCase()
+        : idx === 9 ? 'EPILOGUE \u00b7 ' + this.fmt(arr).toUpperCase()
+        : 'LESSON ' + this.NUMS[idx] + ' \u00b7 ' + (this.fmt(ws) + ' \u2013 ' + this.fmt(we)).toUpperCase();
+      const hw = l.hw.map((h, j) => {
+        const k = idx + '-' + j, on = !!s.hw[k];
+        return { ...h, key: k, box: this.box(on), tick: on ? '\u2713' : '',
+          titleStyle: 'display:block;font-size:19px;font-weight:500;line-height:1.3;color:' + (on ? '#8a7f70' : '#2f2a26') + ';text-decoration:' + (on ? 'line-through' : 'none') + ';text-decoration-color:#b9ad9b' };
+      });
+      L = { ...l, kicker: kick, isNow: idx === cur, hw, hwHead: 'HOMEWORK \u00b7 DUE THE SEVENTH DAY',
+        hwCount: hw.filter((h) => s.hw[h.key]).length + ' OF ' + hw.length,
+        hasPrev: idx > 0, prevId: 'L' + (idx - 1), prevTitle: idx > 0 ? this.LESSONS[idx - 1].title : '',
+        hasNext: idx < 9, nextId: 'L' + (idx + 1), nextTitle: idx < 9 ? this.LESSONS[idx + 1].title : '' };
+    }
+    const pIdx = view.charAt(0) === 'P' ? Number(view.slice(1)) : -1;
+    if (pIdx >= 0 && this.PORTS[pIdx]) {
+      const p = this.PORTS[pIdx];
+      const hw = p.hw.map((h, j) => {
+        const k = 'P' + pIdx + '-' + j, on = !!s.hw[k];
+        return { ...h, key: k, box: this.box(on), tick: on ? '\u2713' : '',
+          titleStyle: 'display:block;font-size:19px;font-weight:500;line-height:1.3;color:' + (on ? '#8a7f70' : '#2f2a26') + ';text-decoration:' + (on ? 'line-through' : 'none') + ';text-decoration-color:#b9ad9b' };
+      });
+      L = { ...p, kicker: 'PORT CALL ' + (pIdx + 1) + ' OF 3 \u00b7 ' + p.place.toUpperCase(), isNow: false, hw,
+        hwHead: 'SHORE ASSIGNMENT \u00b7 DUE AT SEA AND ANCHOR',
+        hwCount: hw.filter((h) => s.hw[h.key]).length + ' OF ' + hw.length,
+        hasPrev: pIdx > 0, prevId: 'P' + (pIdx - 1), prevTitle: pIdx > 0 ? this.PORTS[pIdx - 1].place : '',
+        hasNext: pIdx < 2, nextId: 'P' + (pIdx + 1), nextTitle: pIdx < 2 ? this.PORTS[pIdx + 1].place : '' };
+    }
+
+    return {
+      scrollRef: this.scrollRef, go: this.go, toggleHw: this.toggleHw, toggleOffice: this.toggleOffice,
+      daysLeft, daysLeftLabel: daysLeft === 0 ? 'Home port' : daysLeft === 1 ? 'day to home port' : 'days to home port',
+      voyageBar: 'height:100%;width:' + (pct * 100).toFixed(1) + '%;background:#d9a08a',
+      voyagePctLabel: Math.round(pct * 100) + '% OF THE YEAR',
+      arrivalLabel: arr.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase(),
+      rankName: this.RANKS[rIdx].name, rankNext,
+      rankPips: [1, 2, 3, 4, 5, 6, 7, 8].map((i) => ({ style: 'flex:1;height:5px;border-radius:1px;background:' + (this.lessonDone(i) ? '#d9a08a' : 'rgba(236,228,212,.16)') })),
+      nav, portNav, officeNav: navStyle(view === 'office'), officeCount: officeDone + '/7',
+      isOffice: view === 'office', isLesson: !!L, L: L || { paras: [], reading: [], practice: [], hw: [] },
+      todayKicker: now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase() + ' \u00b7 ' + officeDone + ' OF 7 KEPT',
+      officeItems, grid, streakLabel: streak === 0 ? 'NO STREAK YET' : streak + ' DAY' + (streak === 1 ? '' : 'S') + ' KEPT IN FULL',
+      weekMaxim: wk.maxim, weekMaximBy: wk.maximBy
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -7,7 +7,8 @@ Copy the contents to the web root, replacing what's there.
 | `index.html` | `/` | Me.exe desktop — the landing page |
 | `site.html` | `/site.html` | The portfolio site; also what Internet Voyager loads |
 | `Visible.dc.html` | — | The Visible epub reader, loaded when that app opens |
-| `support.js` | — | Runtime `Visible.dc.html` needs |
+| `MonteCristo.dc.html` | — | The Monte Cristo course, loaded when that app opens. Progress is saved in the browser |
+| `support.js` | — | Runtime `Visible.dc.html` and `MonteCristo.dc.html` need |
 | `mobi-dict.js` | — | The .mobi dictionary parser, imported by Visible on demand |
 | `assets/dictionary.mobi` | — | Optional. Lives in the Webster1903 folder on the desktop; opening it loads it into Visible |
 | `assets/` | `/assets/…` | Wallpaper and icons |
@@ -16,7 +17,7 @@ Copy the contents to the web root, replacing what's there.
 
 ## Notes
 
-- `index.html` fetches `site.html`, `Visible.dc.html`, and `assets/wallpaper.jpg`
+- `index.html` fetches `site.html`, `Visible.dc.html`, `MonteCristo.dc.html`, and `assets/wallpaper.jpg`
   at runtime. Everything else is inlined.
 - Nothing fetches the dictionary automatically. Double-clicking the .mobi on the desktop
   downloads and parses it once; the index is then cached in IndexedDB. Definitions
