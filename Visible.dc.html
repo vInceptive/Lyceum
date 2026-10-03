@@ -526,6 +526,10 @@ class Component extends DCLogic {
   }
 
   prep(src, href, media) {
+    // XHTML allows self-closed script/style tags; the HTML parser treats them as
+    // open and swallows the rest of the chapter. Strip them before parsing.
+    src = src.replace(new RegExp('<(scr' + 'ipt|style|iframe|title|textarea)\\b[^>]*/>', 'gi'), '')
+      .replace(new RegExp('<scr' + 'ipt\\b[\\s\\S]*?</scr' + 'ipt\\s*>', 'gi'), '');
     const doc = new DOMParser().parseFromString(src, 'text/html');
     doc.querySelectorAll('script,link,style,iframe,object,embed,audio,video,form').forEach((n) => n.remove());
     doc.querySelectorAll('[style]').forEach((n) => {
