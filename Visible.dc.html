@@ -131,6 +131,19 @@
           <div style="font-size:13px;font-weight:700;color:#f0e9dc;letter-spacing:.3px">Visible</div>
           <div style="font-size:11px;line-height:1.7;color:#bdb3a2">Drop an .epub anywhere in this window, or open one from disk. A .mobi dictionary can be dropped here too. Click a page edge to turn. Grab the fore-edge and pull to riffle through the book.</div>
           <button data-act="open" onClick="{{ onAct }}" style="height:24px;padding:0 16px;white-space:nowrap;font-family:inherit;font-size:11px;font-weight:700;color:#1e1b16;cursor:pointer;background:linear-gradient(180deg,#e8e4d8,#cfcabc);border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #6f6a5e;border-bottom:1px solid #6f6a5e">Open a book…</button>
+          <sc-if value="{{ hasShelf }}" hint-placeholder-val="{{ false }}">
+            <div style="width:320px;max-width:100%;display:flex;flex-direction:column;margin-top:6px;text-align:left;background:#efe8d8;border:1px solid #b6ab93;box-shadow:4px 5px 0 rgba(0,0,0,.22)">
+              <div style="padding:5px 10px;font-size:10px;font-weight:700;letter-spacing:.8px;color:#f0e9dc;background:#7a6a55">ON THE SHELF</div>
+              <div style="display:flex;flex-direction:column;max-height:260px;overflow:auto;padding:3px 0">
+                <sc-for list="{{ shelf }}" as="b" hint-placeholder-count="3">
+                  <div data-i="{{ b.i }}" onClick="{{ openShelf }}" style="display:flex;flex-direction:column;gap:1px;padding:5px 10px;cursor:pointer;color:#1e1b16" style-hover="background:#7a6a55;color:#fff">
+                    <div style="font-size:11px;font-weight:700">{{ b.title }}</div>
+                    <div style="font-size:10px;opacity:.75">{{ b.author }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
         </div>
       </sc-if>
 
@@ -244,6 +257,8 @@ const FAMILIES = [
 ];
 const GAP = 60, PAD_X = 40, PAD_Y = 46, EDGE = 13;
 
+const SHELF_DIR = 'assets/books/';
+
 class Component extends DCLogic {
   state = {
     stage: 'empty', busy: '', err: '',
@@ -251,7 +266,7 @@ class Component extends DCLogic {
     counts: [], starts: [], total: 0,
     page: 0, spread: 2, fontSize: 17, family: FAMILIES[0].v,
     panel: null, query: '', results: [], marks: [],
-    menu: null, box: null, look: null, dictStatus: '', dictErr: '', dictStale: false, dictBundled: ''
+    menu: null, box: null, look: null, dictStatus: '', dictErr: '', dictStale: false, dictBundled: '', shelf: []
   };
 
   dict = null;
@@ -266,6 +281,7 @@ class Component extends DCLogic {
   /* ---------- lifecycle ---------- */
 
   componentDidMount() {
+    this.loadShelf();
     this.ro = new ResizeObserver(() => this.relayout());
     if (this.R.rStage.current) this.ro.observe(this.R.rStage.current);
     window.addEventListener('keydown', this.onKey);
@@ -1335,6 +1351,37 @@ class Component extends DCLogic {
     this.setState({ marks }, () => { this.draw(); this.save(); });
   }
 
+  /* ---------- shelf (assets/books) ---------- */
+
+  async loadShelf() {
+    try {
+      const res = await fetch(SHELF_DIR + 'books.json', { cache: 'no-cache' });
+      if (!res.ok) return;
+      const list = await res.json();
+      const shelf = (Array.isArray(list) ? list : []).map((b) => {
+        const o = typeof b === 'string' ? { file: b } : (b || {});
+        if (!o.file) return null;
+        return { file: o.file, title: o.title || o.file.replace(/\.epub$/i, '').replace(/[-_]+/g, ' '), author: o.author || '' };
+      }).filter(Boolean);
+      this.setState({ shelf });
+    } catch (e) {}
+  }
+
+  openShelf = async (e) => {
+    const b = this.state.shelf[Number(e.currentTarget.dataset.i)];
+    if (!b) return;
+    const url = SHELF_DIR + b.file.split('/').map(encodeURIComponent).join('/');
+    this.setState({ stage: 'busy', busy: 'Fetching ' + b.title, err: '' });
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(url + ' → ' + res.status);
+      const buf = await res.arrayBuffer();
+      this.loadEpub({ name: b.file.split('/').pop(), arrayBuffer: async () => buf });
+    } catch (err) {
+      this.setState({ stage: 'empty', err: 'Could not fetch ' + b.file + ': ' + err.message });
+    }
+  };
+
   /* ---------- files ---------- */
 
   onPick = (e) => { const f = e.target.files && e.target.files[0]; if (f) this.loadEpub(f); e.target.value = ''; };
@@ -1481,6 +1528,7 @@ class Component extends DCLogic {
       chapLine: reading && loc ? (this.chapLabel(loc.ch) || '') : (s.err || 'Drop an .epub or .mobi dictionary to begin'),
       folio,
       onDragOver: this.onDragOver, onDrop: this.onDrop, onPick: this.onPick,
+      shelf: s.shelf.map((b, i) => ({ i, title: b.title, author: b.author })), hasShelf: s.shelf.length > 0, openShelf: this.openShelf,
       onMenu: this.onMenu, onMenuOver: this.onMenuOver, onAct: this.onAct,
       onQuery: this.onQuery, onFindKey: this.onFindKey, onFamily: this.onFamily,
       onZone: this.onZone, onEdge: this.onEdge, onJump: this.onJump,
