@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>a{color:#1d1b18}a:hover{color:#6b655c}</style>
+</helmet>
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;background:#efebe4;color:#1d1b18;font-family:'Instrument Sans',system-ui,sans-serif;font-size:13px;overflow:hidden">
+  <div style="flex:none;display:flex;align-items:center;gap:24px;padding:0 20px;height:48px;border-bottom:1px solid #d9d3c8">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.4em">CLOSET</div>
+    <div style="display:flex;gap:2px;height:100%">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.go }}" style="height:100%;padding:0 12px;background:none;border:none;border-bottom:2px solid {{ t.line }};color:{{ t.fg }};font-family:inherit;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">{{ t.label }}<span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6b655c">{{ t.count }}</span></button>
+      </sc-for>
+    </div>
+    <div style="flex:1"></div>
+    <button onClick="{{ openSync }}" title="{{ syncMsg }}" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;background:none;color:#1d1b18;border:1px solid #d9d3c8;padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:8px" style-hover="border-color:#1d1b18"><span style="width:7px;height:7px;border-radius:50%;background:{{ syncDot }}"></span>SYNC</button>
+    <button onClick="{{ addPiece }}" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;background:#1d1b18;color:#f4f1ea;border:none;padding:8px 14px;cursor:pointer" style-hover="background:#3a3631">+ PIECE</button>
+  </div>
+  <sc-if value="{{ syncOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSync }}" style="position:absolute;inset:0;z-index:50;background:rgba(29,27,24,.25);display:flex;justify-content:flex-end;align-items:flex-start;padding:56px 20px;overflow:auto">
+      <div onClick="{{ stop }}" style="width:400px;max-width:100%;background:#f4f1ea;border:1px solid #d9d3c8;padding:20px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:8px;height:8px;border-radius:50%;background:{{ syncDot }}"></span>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em">CLOUD SYNC · SUPABASE</div>
+        </div>
+        <div style="color:#6b655c;text-wrap:pretty">{{ syncMsg }}</div>
+        <label style="display:flex;flex-direction:column;gap:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#6b655c">PROJECT URL</span><input value="{{ cfgUrl }}" onChange="{{ onCfgUrl }}" placeholder="https://xxxx.supabase.co" style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px;border:1px solid #d9d3c8;background:#fff;color:#1d1b18"></input></label>
+        <label style="display:flex;flex-direction:column;gap:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#6b655c">ANON / PUBLISHABLE KEY</span><input value="{{ cfgKey }}" onChange="{{ onCfgKey }}" placeholder="eyJ… or sb_publishable_…" style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px;border:1px solid #d9d3c8;background:#fff;color:#1d1b18"></input></label>
+        <label style="display:flex;flex-direction:column;gap:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#6b655c">SYNC CODE · SAME ON EVERY DEVICE</span><input value="{{ cfgId }}" onChange="{{ onCfgId }}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px;border:1px solid #d9d3c8;background:#fff;color:#1d1b18"></input></label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onClick="{{ connect }}" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;background:#1d1b18;color:#f4f1ea;border:none;padding:8px 14px;cursor:pointer" style-hover="background:#3a3631">CONNECT</button>
+          <button onClick="{{ syncNow }}" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;background:none;color:#1d1b18;border:1px solid #d9d3c8;padding:7px 12px;cursor:pointer" style-hover="border-color:#1d1b18">SYNC NOW</button>
+          <button onClick="{{ disconnect }}" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;background:none;color:#6b655c;border:1px solid #d9d3c8;padding:7px 12px;cursor:pointer" style-hover="border-color:#1d1b18">DISCONNECT</button>
+        </div>
+        <div style="border-top:1px solid #d9d3c8;padding-top:12px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#6b655c;flex:1">ONE-TIME SETUP · RUN IN SUPABASE SQL EDITOR</div><button onClick="{{ copySql }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;background:none;border:1px solid #d9d3c8;padding:4px 8px;cursor:pointer;color:#1d1b18">{{ copyLabel }}</button></div>
+          <pre style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.5;background:#fff;border:1px solid #d9d3c8;padding:10px;white-space:pre-wrap;color:#1d1b18">{{ sql }}</pre>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="flex:1;min-height:0;display:flex">
+    <div style="flex:1;min-width:0;position:relative;overflow:auto">
+
+      <sc-if value="{{ isBoard }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;display:flex">
+          <div style="flex:none;width:200px;border-right:1px solid #d9d3c8;display:flex;flex-direction:column;min-height:0">
+            <div style="padding:14px 14px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:#6b655c">PIECES · CLICK TO PLACE</div>
+            <div style="flex:1;overflow:auto;padding:0 8px 8px;display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ railPieces }}" as="r" hint-placeholder-count="6">
+                <button onClick="{{ r.add }}" style="display:flex;align-items:center;gap:8px;padding:6px;background:none;border:none;text-align:left;cursor:pointer;font-family:inherit;font-size:12px;color:#1d1b18" style-hover="background:#e4dfd6">
+                  <span style="width:18px;height:24px;flex:none;background:{{ r.color }};box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)"></span>
+                  <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#6b655c">{{ r.tag }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="padding:10px;border-top:1px solid #d9d3c8">
+              <button onClick="{{ addNote }}" style="width:100%;padding:8px;background:none;border:1px solid #1d1b18;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;cursor:pointer;color:#1d1b18" style-hover="background:#e4dfd6">+ TEXT</button>
+            </div>
+          </div>
+          <div ref="{{ rCanvas }}" onPointerDown="{{ canvasDown }}" style="flex:1;min-width:0;position:relative;overflow:hidden;background-color:#f4f1ea;background-image:radial-gradient(#d4cdc1 1px,transparent 1px);background-size:24px 24px">
+            <sc-for list="{{ boardItems }}" as="b" hint-placeholder-count="0">
+              <div onPointerDown="{{ b.down }}" style="position:absolute;left:{{ b.x }}px;top:{{ b.y }}px;width:{{ b.w }}px;height:{{ b.h }}px;transform:rotate({{ b.rot }}deg);z-index:{{ b.z }};outline:{{ b.outline }};outline-offset:4px;cursor:move;touch-action:none;user-select:none">
+                <sc-if value="{{ b.isImgPiece }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;inset:0;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12),0 10px 24px rgba(0,0,0,.08);display:flex;flex-direction:column;overflow:hidden">
+                    {{ b.imgEl }}
+                    <div style="flex:none;background:{{ b.color }};color:{{ b.fg }};padding:5px 7px;font-size:11px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ b.isSwatch }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;inset:0;background:{{ b.color }};color:{{ b.fg }};box-shadow:0 1px 2px rgba(0,0,0,.12),0 10px 24px rgba(0,0,0,.08);display:flex;flex-direction:column;justify-content:space-between;padding:10px;box-sizing:border-box;overflow:hidden">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase">{{ b.cat }}</div>
+                    <div style="font-size:13px;font-weight:500;line-height:1.2">{{ b.name }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ b.isNote }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;inset:0;padding:4px;font-size:20px;line-height:1.2;overflow:hidden;white-space:pre-wrap;box-sizing:border-box">{{ b.text }}</div>
+                </sc-if>
+                <sc-if value="{{ b.sel }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;left:50%;top:-30px;width:1px;height:22px;background:#1d1b18"></div>
+                  <div onPointerDown="{{ b.rotDown }}" title="Rotate (Shift snaps 15°)" style="position:absolute;left:50%;top:-36px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#fff;border:1.5px solid #1d1b18;cursor:grab"></div>
+                  <div onPointerDown="{{ b.sizeDown }}" title="Resize" style="position:absolute;right:-10px;bottom:-10px;width:12px;height:12px;background:#fff;border:1.5px solid #1d1b18;cursor:nwse-resize"></div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{ boardEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6b655c;pointer-events:none">Place pieces from the left to start a board.</div>
+            </sc-if>
+            <sc-if value="{{ hasBoardSel }}" hint-placeholder-val="{{ false }}">
+              <div onPointerDown="{{ stop }}" style="position:absolute;top:12px;right:12px;z-index:9999;display:flex;gap:4px;align-items:center;background:#f8f6f2;border:1px solid #d9d3c8;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.08)">
+                <sc-if value="{{ selIsNote }}" hint-placeholder-val="{{ false }}">
+                  <input value="{{ selNoteText }}" onChange="{{ setNoteText }}" placeholder="Text" style="width:160px;padding:6px 8px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:12px">
+                </sc-if>
+                <sc-if value="{{ selIsPiece }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ editSelPiece }}" style="padding:6px 10px;background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;color:#1d1b18" style-hover="background:#e4dfd6">EDIT</button>
+                </sc-if>
+                <button onClick="{{ forward }}" style="padding:6px 10px;background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;color:#1d1b18" style-hover="background:#e4dfd6">FRONT</button>
+                <button onClick="{{ backward }}" style="padding:6px 10px;background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;color:#1d1b18" style-hover="background:#e4dfd6">BACK</button>
+                <button onClick="{{ resetRot }}" style="padding:6px 10px;background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;color:#1d1b18" style-hover="background:#e4dfd6">0°</button>
+                <button onClick="{{ removeSel }}" style="padding:6px 10px;background:none;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;color:#9a2e22" style-hover="background:#e4dfd6">REMOVE</button>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isCloset }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;align-items:start">
+          <sc-for list="{{ cols }}" as="col" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:baseline;gap:8px;padding-bottom:8px;border-bottom:1px solid #1d1b18;margin-bottom:4px">
+                <div style="font-size:15px;font-weight:600">{{ col.title }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b655c">{{ col.sub }}</div>
+              </div>
+              <sc-for list="{{ col.items }}" as="p" hint-placeholder-count="3">
+                <div style="display:flex;gap:10px;align-items:center;padding:8px;background:#f8f6f2;border:1px solid {{ p.border }}">
+                  <div onClick="{{ p.open }}" style="position:relative;overflow:hidden;width:40px;height:52px;flex:none;background:{{ p.color }};box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);cursor:pointer"><sc-if value="{{ p.hasImg }}" hint-placeholder-val="{{ false }}">{{ p.imgEl }}</sc-if></div>
+                  <div onClick="{{ p.open }}" style="flex:1;min-width:0;cursor:pointer">
+                    <div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</div>
+                    <div style="font-size:11px;color:#6b655c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">{{ p.meta }}</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:4px;flex:none">
+                    <select value="{{ p.status }}" onChange="{{ p.onStatus }}" style="font-family:inherit;font-size:11px;padding:3px 4px;border:1px solid #d9d3c8;background:#fff;color:#1d1b18">
+                      <option value="keep">Own · Keep</option>
+                      <option value="letgo">Own · Let go</option>
+                      <option value="want">Want</option>
+                    </select>
+                    <sc-if value="{{ p.isLetGo }}" hint-placeholder-val="{{ false }}">
+                      <select value="{{ p.disp }}" onChange="{{ p.onDisp }}" style="font-family:inherit;font-size:11px;padding:3px 4px;border:1px solid #d9d3c8;background:#fff;color:#1d1b18">
+                        <option value="">Undecided</option>
+                        <option value="donate">Donate</option>
+                        <option value="sell">Sell</option>
+                      </select>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ col.empty }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:16px 8px;color:#6b655c;font-size:12px">Nothing here yet.</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isInspo }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:24px 28px 40px">
+          <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:16px;margin-bottom:14px">
+            <div style="font-size:22px;font-weight:600">Inspiration</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b655c">{{ inspoSummary }}</div>
+            <div style="flex:1"></div>
+            <button onClick="{{ addInspo }}" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;background:none;border:1px solid #1d1b18;padding:7px 12px;cursor:pointer;color:#1d1b18" style-hover="background:#e4dfd6">+ INSPIRATION</button>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr);gap:6px;padding:14px 16px;background:#f8f6f2;border:1px solid #e2ddd3;margin-bottom:24px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:#6b655c">MY RULES</div>
+            <textarea value="{{ rules }}" onChange="{{ setRules }}" rows="{{ rulesRows }}" style="border:none;background:transparent;padding:0;resize:vertical;font-family:inherit;font-size:14px;line-height:1.55;color:#1d1b18;outline:none"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;align-items:start">
+            <sc-for list="{{ inspos }}" as="q" hint-placeholder-count="6">
+              <div style="display:flex;flex-direction:column;background:#f8f6f2;border:1px solid #e2ddd3">
+                <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:3px;background:#e8e3da">
+                  <sc-for list="{{ q.imgs }}" as="im" hint-placeholder-count="0">
+                    <div style="position:relative;aspect-ratio:3/4;overflow:hidden;background:#fff">
+                      {{ im.el }}
+                      <button onClick="{{ im.remove }}" title="Remove" style="position:absolute;top:3px;right:3px;width:18px;height:18px;padding:0;border:none;background:rgba(29,27,24,.75);color:#f4f1ea;font-size:12px;line-height:18px;cursor:pointer">×</button>
+                    </div>
+                  </sc-for>
+                  <sc-for list="{{ q.slots }}" as="sl" hint-placeholder-count="3">
+                    <label title="Upload image" style="aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;border:1.5px dotted #c4bdb1;color:#8a8378;font-size:18px;cursor:pointer;box-sizing:border-box" style-hover="background:#efebe4">+<input type="file" accept="image/*" multiple="" onChange="{{ q.upload }}" style="display:none"></label>
+                  </sc-for>
+                </div>
+                <div style="padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <input value="{{ q.name }}" onChange="{{ q.onName }}" style="flex:1;min-width:0;border:none;background:transparent;padding:0;font-family:inherit;font-size:15px;font-weight:600;color:#1d1b18;outline:none">
+                    <input value="{{ q.kind }}" onChange="{{ q.onKind }}" style="width:90px;border:none;background:transparent;padding:0;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#6b655c;outline:none">
+                  </div>
+                  <textarea value="{{ q.take }}" onChange="{{ q.onTake }}" rows="3" placeholder="What to take from it…" style="border:none;background:transparent;padding:0;resize:vertical;font-family:inherit;font-size:13px;line-height:1.45;color:#1d1b18;outline:none"></textarea>
+                  <input onKeyDown="{{ q.onUrlKey }}" placeholder="Paste image URL, press Enter" style="padding:5px 7px;border:1px solid #e2ddd3;background:#fff;font-family:inherit;font-size:11px;color:#1d1b18">
+                  <div style="display:flex;gap:12px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;margin-top:2px">
+                    <a href="{{ q.searchUrl }}" onClick="{{ openSearch }}" target="_blank" rel="noopener noreferrer" style="color:#1d1b18">SEARCH IMAGES ↗</a>
+                    <div style="flex:1"></div>
+                    <button onClick="{{ q.remove }}" style="background:none;border:none;padding:0;font:inherit;letter-spacing:inherit;color:#9a2e22;cursor:pointer">DELETE</button>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isGaps }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:24px 28px;max-width:880px">
+          <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:16px;margin-bottom:6px">
+            <div style="font-size:22px;font-weight:600">Capsule</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b655c">{{ gapSummary }}</div>
+          </div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:#6b655c;margin-bottom:12px">
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:16px;background:#8a8378"></span>Kept</span>
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:16px;border:1.5px dashed #8a8378;box-sizing:border-box"></span>Wanted</span>
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:16px;border:1.5px dotted #c4bdb1;box-sizing:border-box"></span>Open slot</span>
+            <span>Set a target for each category with − / +</span>
+          </div>
+          <sc-for list="{{ gapRows }}" as="g" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:130px minmax(0,1fr) auto;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid #d9d3c8">
+              <div>
+                <div style="font-weight:600">{{ g.cat }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:{{ g.noteColor }};margin-top:3px">{{ g.note }}</div>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
+                  <div title="{{ c.title }}" style="width:26px;height:34px;background:{{ c.bg }};border:1.5px {{ c.bstyle }} {{ c.bcolor }};box-sizing:border-box"></div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <button onClick="{{ g.dec }}" style="width:26px;height:26px;border:1px solid #d9d3c8;background:#f8f6f2;cursor:pointer;color:#1d1b18">−</button>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;min-width:20px;text-align:center">{{ g.target }}</span>
+                <button onClick="{{ g.inc }}" style="width:26px;height:26px;border:1px solid #d9d3c8;background:#f8f6f2;cursor:pointer;color:#1d1b18">+</button>
+              </div>
+            </div>
+          </sc-for>
+          <div style="margin-top:28px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:#6b655c;margin-bottom:8px">PALETTE · KEPT + WANTED</div>
+          <div style="display:flex;height:40px;border:1px solid #d9d3c8">
+            <sc-for list="{{ palette }}" as="c" hint-placeholder-count="6">
+              <div title="{{ c.title }}" style="flex:1;background:{{ c.bg }}"></div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPhuket }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:24px 28px;max-width:880px">
+          <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:16px;margin-bottom:16px">
+            <div style="font-size:22px;font-weight:600">Phuket list</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b655c">{{ phuketSummary }}</div>
+          </div>
+          <sc-for list="{{ phuketRows }}" as="w" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid #d9d3c8">
+              <div onClick="{{ w.open }}" style="position:relative;overflow:hidden;width:40px;height:52px;background:{{ w.color }};box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);cursor:pointer"><sc-if value="{{ w.hasImg }}" hint-placeholder-val="{{ false }}">{{ w.imgEl }}</sc-if></div>
+              <div style="min-width:0">
+                <div onClick="{{ w.open }}" style="font-weight:600;cursor:pointer">{{ w.name }}</div>
+                <div style="font-size:11px;color:#6b655c;margin:2px 0 6px">{{ w.meta }}</div>
+                <input value="{{ w.where }}" onChange="{{ w.onWhere }}" placeholder="Where to look…" style="width:100%;max-width:420px;box-sizing:border-box;padding:5px 8px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:12px;color:#1d1b18">
+              </div>
+              <div style="display:flex;gap:6px;align-items:center">
+                <select value="{{ w.priority }}" onChange="{{ w.onPriority }}" style="font-family:inherit;font-size:11px;padding:4px;border:1px solid #d9d3c8;background:#fff;color:#1d1b18">
+                  <option value="1">High</option>
+                  <option value="2">Medium</option>
+                  <option value="3">Low</option>
+                </select>
+                <button onClick="{{ w.bought }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:6px 10px;border:1px solid #1d1b18;background:none;cursor:pointer;color:#1d1b18" style-hover="background:#1d1b18;color:#f4f1ea">BOUGHT</button>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ phuketEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:20px 0;color:#6b655c">No wants marked for Phuket. Add a piece, or move one up from Later.</div>
+          </sc-if>
+          <sc-if value="{{ hasLater }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:32px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:#6b655c;margin-bottom:4px">LATER</div>
+            <sc-for list="{{ laterRows }}" as="w" hint-placeholder-count="1">
+              <div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #d9d3c8">
+                <div style="width:20px;height:26px;background:{{ w.color }};box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)"></div>
+                <div onClick="{{ w.open }}" style="flex:1;min-width:0;cursor:pointer">{{ w.name }} <span style="color:#6b655c;font-size:11px">· {{ w.cat }}</span></div>
+                <button onClick="{{ w.toPhuket }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:5px 8px;border:none;background:none;cursor:pointer;color:#1d1b18" style-hover="background:#e4dfd6">→ PHUKET</button>
+              </div>
+            </sc-for>
+          </sc-if>
+        </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ hasEditor }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;width:290px;border-left:1px solid #d9d3c8;background:#f8f6f2;overflow:auto;display:flex;flex-direction:column">
+        <sc-if value="{{ edHasImg }}" hint-placeholder-val="{{ false }}">{{ edImgEl }}</sc-if>
+        <div style="height:120px;flex:none;background:{{ ed.color }};color:{{ ed.fg }};padding:14px;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase">{{ ed.category }}</span>
+            <button onClick="{{ closeEditor }}" style="background:none;border:none;color:{{ ed.fg }};font-size:18px;cursor:pointer;line-height:1">×</button>
+          </div>
+          <div style="font-size:16px;font-weight:600">{{ ed.name }}</div>
+        </div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Name
+            <input value="{{ ed.name }}" onChange="{{ set.name }}" style="padding:7px 8px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;color:#1d1b18">
+          </label>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:11px;color:#6b655c">Reference image
+            <input value="{{ edImgUrl }}" onChange="{{ set.img }}" placeholder="{{ imgPlaceholder }}" style="padding:7px 8px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:12px;color:#1d1b18">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em">
+              <label style="cursor:pointer;color:#1d1b18;border:1px solid #1d1b18;padding:5px 8px" style-hover="background:#e4dfd6">UPLOAD<input type="file" accept="image/*" onChange="{{ uploadImg }}" style="display:none"></label>
+              <a href="{{ searchUrl }}" onClick="{{ openSearch }}" target="_blank" rel="noopener noreferrer" style="color:#1d1b18">SEARCH IMAGES ↗</a>
+              <sc-if value="{{ edHasImg }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ clearImg }}" style="background:none;border:none;padding:0;font:inherit;letter-spacing:inherit;color:#9a2e22;cursor:pointer">REMOVE</button>
+              </sc-if>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Category
+              <select value="{{ ed.category }}" onChange="{{ set.category }}" style="padding:6px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;color:#1d1b18">
+                <option>Tops</option><option>Bottoms</option><option>Outerwear</option><option>Footwear</option><option>Accessories</option><option>Bags</option>
+              </select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Status
+              <select value="{{ ed.status }}" onChange="{{ set.status }}" style="padding:6px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;color:#1d1b18">
+                <option value="keep">Own · Keep</option><option value="letgo">Own · Let go</option><option value="want">Want</option>
+              </select>
+            </label>
+          </div>
+          <sc-if value="{{ edLetGo }}" hint-placeholder-val="{{ false }}">
+            <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Let go by
+              <select value="{{ ed.disp }}" onChange="{{ set.disp }}" style="padding:6px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;color:#1d1b18">
+                <option value="">Undecided</option><option value="donate">Donate</option><option value="sell">Sell</option>
+              </select>
+            </label>
+          </sc-if>
+          <sc-if value="{{ edWant }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Buy in
+                <select value="{{ ed.trip }}" onChange="{{ set.trip }}" style="padding:6px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;color:#1d1b18">
+                  <option value="phuket">Phuket</option><option value="later">Later</option>
+                </select>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Priority
+                <select value="{{ ed.priority }}" onChange="{{ set.priority }}" style="padding:6px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;color:#1d1b18">
+                  <option value="1">High</option><option value="2">Medium</option><option value="3">Low</option>
+                </select>
+              </label>
+            </div>
+          </sc-if>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#1d1b18;cursor:pointer">
+            <input type="checkbox" checked="{{ edPoint }}" onChange="{{ togglePoint }}" style="margin:0;accent-color:#1d1b18">
+            Point piece (the one standout in an outfit)
+          </label>
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Color
+            <span style="display:flex;gap:6px">
+              <input type="color" value="{{ ed.color }}" onChange="{{ set.color }}" style="width:40px;height:32px;padding:0;border:1px solid #d9d3c8;background:#fff">
+              <input value="{{ ed.color }}" onChange="{{ set.color }}" style="flex:1;min-width:0;padding:7px 8px;border:1px solid #d9d3c8;background:#fff;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#1d1b18">
+            </span>
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Material
+              <input value="{{ ed.material }}" onChange="{{ set.material }}" style="min-width:0;padding:7px 8px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;color:#1d1b18">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Size
+              <input value="{{ ed.size }}" onChange="{{ set.size }}" style="min-width:0;padding:7px 8px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;color:#1d1b18">
+            </label>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">{{ whereLabel }}
+            <input value="{{ ed.where }}" onChange="{{ set.where }}" style="padding:7px 8px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;color:#1d1b18">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#6b655c">Why it matters (optional)
+            <textarea value="{{ ed.meaning }}" onChange="{{ set.meaning }}" rows="4" style="padding:7px 8px;border:1px solid #d9d3c8;background:#fff;font-family:inherit;font-size:13px;line-height:1.4;resize:vertical;color:#1d1b18"></textarea>
+          </label>
+          <button onClick="{{ deletePiece }}" style="align-self:flex-start;margin-top:4px;background:none;border:none;padding:0;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#9a2e22;cursor:pointer">DELETE PIECE</button>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  CATS = ['Tops', 'Bottoms', 'Outerwear', 'Footwear', 'Accessories', 'Bags'];
+  KEY = 'closet.v3';
+  rCanvas = React.createRef();
+  state = this.load();
+
+  uid() { return Math.random().toString(36).slice(2, 9); }
+
+  seed() {
+    const T = 'Tailor shop: get measured on day 1, allow 2–3 days and a fitting. Bring a reference photo.';
+    const P = (name, category, color, material, meaning, extra) => ({ id: this.uid(), name, category, color, material, size: '', where: '', meaning, status: 'want', disp: '', trip: 'later', priority: '2', point: false, ...extra });
+    const pieces = [
+      P('Oxford button-down, ecru', 'Tops', '#ebe3d1', 'Cotton oxford', 'Base of the Seinfeld side. Ecru over optic white: softer next to warm, tan skin.'),
+      P('Oxford button-down, light blue', 'Tops', '#b7c6d6', 'Cotton oxford', 'Pairs with every bottom here.'),
+      P('Heavyweight pocket tee, ecru', 'Tops', '#e7dfcc', 'Heavy cotton', 'Japanese-Americana basic. Holds its shape over broad shoulders.'),
+      P('Heavyweight pocket tee, navy', 'Tops', '#263049', 'Heavy cotton', ''),
+      P('Loopwheel crew sweatshirt, heather grey', 'Tops', '#a7a39b', 'Loopwheel cotton', 'Comfort piece. Replaces graphic hoodies.'),
+      P('Shetland crewneck, forest', 'Tops', '#3e5240', 'Shetland wool', 'Point piece. Green suits warm undertones.', { point: true }),
+      P('Knit polo, rust', 'Tops', '#a24f2d', 'Cotton knit', 'Point piece. Warm rust flatters warm, tan skin and black hair.', { point: true }),
+      P('Linen camp-collar shirt, ecru', 'Tops', '#e4dac4', 'Linen', 'Summer at home, and wear it on the trip.', { trip: 'phuket', priority: '1', where: 'Phuket Town shops or a tailor for a custom one.' }),
+      P('Fatigue pants, olive', 'Bottoms', '#5b5a3a', 'Cotton sateen', 'Engineered Garments side. Regular fit, slight taper.'),
+      P('Selvedge denim, mid indigo', 'Bottoms', '#3b4a66', 'Selvedge denim', 'Straight leg, not slim. Balances athletic thighs.'),
+      P('Pleated trousers, navy', 'Bottoms', '#2a3044', 'Wool', 'Seinfeld-era pleats, tailored to the waist so they don\u2019t balloon.', { trip: 'phuket', priority: '1', where: T }),
+      P('Chinos, khaki', 'Bottoms', '#bea67d', 'Cotton twill', '', { trip: 'phuket', priority: '2', where: T }),
+      P('Chore coat, navy', 'Outerwear', '#2c3550', 'Cotton canvas', 'Japanese Americana anchor. Hip length suits 5\u20197\u2033\u20135\u201911\u2033.'),
+      P('Harrington jacket, tan', 'Outerwear', '#b89b6e', 'Cotton', 'Seinfeld light jacket.'),
+      P('Overcoat, charcoal', 'Outerwear', '#3d3b39', 'Wool', 'Temperate winters. Charcoal over black for medium contrast.'),
+      P('Dad sneakers, grey', 'Footwear', '#b3b0aa', 'Suede / mesh', 'Seinfeld signature.'),
+      P('Loafers, dark brown', 'Footwear', '#4f3322', 'Leather', ''),
+      P('Moc-toe boots, brown', 'Footwear', '#6b4527', 'Leather', 'Workwear side.'),
+      P('Six-panel cap, navy', 'Accessories', '#2b3348', 'Cotton', 'Replaces graphic caps.'),
+      P('Belt, brown leather', 'Accessories', '#5a3a24', 'Leather', 'Match to loafers and boots.'),
+      P('Field watch, gold-tone', 'Accessories', '#b8964f', 'Brass / leather', 'Point piece. Gold suits warm undertone.', { point: true }),
+      P('Canvas tote, natural', 'Bags', '#d8cbaf', 'Canvas', '', { trip: 'phuket', priority: '3', where: 'Phuket Town Sunday Walking Street market. Check the stitching.' })
+    ];
+    const board = pieces.map((p, i) => ({ id: this.uid(), type: 'piece', pid: p.id, x: 24 + (i % 8) * 108, y: 24 + Math.floor(i / 8) * 146, w: 96, h: 128, rot: 0, z: i + 1 }));
+    board.push({ id: this.uid(), type: 'note', text: 'Warm \u00b7 tan \u00b7 medium contrast\nEcru over white, navy and charcoal over black\nRegular fit, slight taper\nOne point piece per outfit', x: 24, y: 470, w: 420, h: 110, rot: 0, z: 50 });
+    return { pieces, board, targets: { Tops: 8, Bottoms: 4, Outerwear: 3, Footwear: 3, Accessories: 3, Bags: 1 } };
+  }
+
+  load() {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem(this.KEY)); } catch (e) {}
+    if (!d || !d.pieces || !(d.seedV >= 2)) d = this.seed();
+    if (!d.p3) d = this.patch3(d);
+    if (!d.inspo) d = { ...d, ...this.seedInspo() };
+    this.savedAt = d.savedAt || 0;
+    this.cfg = this.readCfg();
+    const c = this.cfg || {};
+    return { ...d, tab: 'closet', selId: null, boardSel: null, syncOpen: false, syncStatus: this.cfg ? 'idle' : 'off', syncMsg: this.cfg ? 'Connected.' : 'Not connected. Data is saved in this browser only.', cfgUrl: c.url || '', cfgKey: c.key || '', cfgId: c.id || ('closet-' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10)), copied: false };
+  }
+
+  readCfg() { try { const c = JSON.parse(localStorage.getItem('closet.sync')); return c && c.url && c.key && c.id ? c : null; } catch (e) { return null; } }
+  payload() { const { pieces, board, targets, p3, inspo, rules } = this.state; return { pieces, board, targets, seedV: 2, p3, inspo, rules }; }
+  hdr(x) { return { apikey: this.cfg.key, Authorization: 'Bearer ' + this.cfg.key, ...x }; }
+  ok(m) { this.setState({ syncStatus: 'ok', syncMsg: m }); }
+  fail(e) { this.setState({ syncStatus: 'error', syncMsg: 'Sync failed: ' + String(e && e.message || e).slice(0, 200) }); }
+  stamp(t) { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+
+  async pull(remoteWins) {
+    if (!this.cfg || this.busy) return;
+    this.busy = true; this.setState({ syncStatus: 'syncing', syncMsg: 'Checking cloud…' });
+    try {
+      const c = this.cfg;
+      const r = await fetch(c.url + '/rest/v1/closet_sync?id=eq.' + encodeURIComponent(c.id) + '&select=data,updated_at', { headers: this.hdr() });
+      if (!r.ok) throw new Error(await r.text());
+      const row = (await r.json())[0];
+      const t = row ? Date.parse(row.updated_at) : 0;
+      if (row && row.data && row.data.pieces && (remoteWins || t > this.savedAt)) {
+        this.lastJSON = JSON.stringify({ ...this.payload(), ...row.data });
+        this.savedAt = t;
+        this.setState({ ...row.data, selId: null, boardSel: null });
+        this.busy = false; this.ok('Pulled from cloud at ' + this.stamp(Date.now()) + '.');
+      } else if (!row || this.savedAt > t) { this.busy = false; await this.push(); }
+      else { this.busy = false; this.ok('Up to date at ' + this.stamp(Date.now()) + '.'); }
+    } catch (e) { this.busy = false; this.fail(e); }
+  }
+
+  async push() {
+    if (!this.cfg || this.busy) return;
+    clearTimeout(this.pushT);
+    this.busy = true; this.setState({ syncStatus: 'syncing', syncMsg: 'Uploading…' });
+    try {
+      await this.migrateImgs();
+      const at = new Date().toISOString();
+      const r = await fetch(this.cfg.url + '/rest/v1/closet_sync', { method: 'POST', headers: this.hdr({ 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify({ id: this.cfg.id, data: this.payload(), updated_at: at }) });
+      if (!r.ok) throw new Error(await r.text());
+      this.savedAt = Date.parse(at); this.saveLocal();
+      this.busy = false; clearTimeout(this.pushT); this.ok('Synced at ' + this.stamp(Date.now()) + '.');
+    } catch (e) { this.busy = false; this.fail(e); }
+  }
+
+  async putImg(blob) {
+    const c = this.cfg, path = encodeURIComponent(c.id) + '/' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7) + '.jpg';
+    const r = await fetch(c.url + '/storage/v1/object/closet/' + path, { method: 'POST', headers: this.hdr({ 'Content-Type': 'image/jpeg', 'x-upsert': 'true' }), body: blob });
+    if (!r.ok) throw new Error('Image upload: ' + await r.text());
+    return c.url + '/storage/v1/object/public/closet/' + path;
+  }
+
+  async migrateImgs() {
+    const found = new Set();
+    JSON.stringify(this.payload(), (k, v) => { if (typeof v === 'string' && v.startsWith('data:image')) found.add(v); return v; });
+    if (!found.size) return;
+    const map = {}; let n = 0;
+    for (const d of found) { this.setState({ syncMsg: 'Uploading images ' + (++n) + '/' + found.size + '…' }); map[d] = await this.putImg(await (await fetch(d)).blob()); }
+    const swap = v => Array.isArray(v) ? v.map(swap) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, swap(x)])) : typeof v === 'string' && map[v] ? map[v] : v;
+    await new Promise(res => this.setState(s => ({ pieces: swap(s.pieces), board: swap(s.board), inspo: swap(s.inspo) }), res));
+  }
+
+  saveLocal() { try { localStorage.setItem(this.KEY, JSON.stringify({ ...this.payload(), savedAt: this.savedAt })); } catch (e) {} }
+
+  componentDidMount() {
+    this.lastJSON = JSON.stringify(this.payload());
+    this.onVis = () => { if (document.visibilityState === 'visible') this.pull(); };
+    document.addEventListener('visibilitychange', this.onVis);
+    if (this.cfg) this.pull();
+  }
+
+  seedInspo() {
+    const Q = (name, kind, take, search) => ({ id: this.uid(), name, kind, take, search, imgs: [] });
+    return {
+      rules: 'Warm undertone, tan skin, medium contrast: ecru over optic white, navy and charcoal over black.\nRegular fit with a slight taper; straight-leg denim. Broad shoulders, so nothing too slim or boxy.\nOne point piece per outfit; everything else quiet.\nQuality over quantity. Comfort first.',
+      inspo: [
+        Q('Seinfeld', 'TV · 90s', 'Relaxed jeans, tucked button-downs, crewneck sweaters, grey or white sneakers, light jackets. Easy proportions.', 'Jerry Seinfeld 90s outfits'),
+        Q('Japanese Americana', 'Style', 'American workwear and Ivy made with Japanese care: chore coats, oxfords, fatigues, selvedge denim, loopwheel cotton.', 'Japanese Americana menswear'),
+        Q('Korean style rules', 'Principle', 'Point: one standout piece per outfit. Quality: fewer, better pieces. Comfort: if it doesn\u2019t feel good, it doesn\u2019t stay.', 'Korean men minimal outfit'),
+        Q('Ash Callaghan', 'YouTube', '', 'Ash Callaghan menswear'),
+        Q('Muji · Auralee', 'Japanese minimal', 'Soft natural fabrics, washed colors, relaxed but clean cuts.', 'Auralee menswear lookbook'),
+        Q('COS · Arket', 'Scandi clean', 'Clean lines, a neutral palette, very few details.', 'COS menswear minimal outfit'),
+        Q('Engineered Garments', 'Workwear', 'Pockets, layering and utility fabrics, with some oddness in the details.', 'Engineered Garments lookbook')
+      ]
+    };
+  }
+
+  patch3(d) {
+    const pieces = d.pieces.map(p => p.name === 'Chinos, khaki' && p.status === 'want' ? { ...p, status: 'keep', trip: 'later', where: 'Tailored' } : p);
+    const P = (name, category, color, material, meaning, priority, where) => ({ id: this.uid(), name, category, color, material, size: '', where, meaning, status: 'want', disp: '', trip: 'phuket', priority, point: false });
+    const add = [
+      P('Salomon trainers, muted', 'Footwear', '#6e6b57', 'Mesh / synthetic', 'Daily walking shoe. Muted colorway (olive, tan, grey, black) so it doesn\u2019t compete with point pieces.', '1', 'Salomon Shop, Central Phuket 2nd floor (call ahead), or SuperSports. Try on in the afternoon. Compare US price first.'),
+      P('Dr. Martens sandals, brown', 'Footwear', '#5a3a24', 'Leather', 'Brown to match the loafers, boots and belt. Stiff for the first few weeks.', '2', 'Central men\u2019s shoe department; check the store locator at drmartens.co.th. Compare US price first.'),
+      P('Linen shirt, olive', 'Tops', '#7a7651', 'Linen', 'Second linen shirt. Olive sits well on warm, tan skin.', '1', 'Phuket Town shops, or have a tailor make one.'),
+      P('Ring, gold-tone', 'Accessories', '#c2a05a', 'Gold / brass', 'Pairs with the gold-tone watch. Gold suits warm undertone.', '2', 'Phuket Town jewelers. Gold shops price by weight at the day\u2019s rate; get a receipt.')
+    ];
+    const z = d.board.reduce((m, b) => Math.max(m, b.z), 0);
+    const board = [...d.board, ...add.map((p, i) => ({ id: this.uid(), type: 'piece', pid: p.id, x: 460 + i * 108, y: 470, w: 96, h: 128, rot: 0, z: z + i + 1 }))];
+    const t = d.targets || {};
+    const targets = { ...t, Tops: Math.max(t.Tops || 0, 9), Footwear: Math.max(t.Footwear || 0, 5), Accessories: Math.max(t.Accessories || 0, 4) };
+    return { ...d, pieces: [...pieces, ...add], board, targets, p3: true };
+  }
+
+  componentDidUpdate() {
+    const json = JSON.stringify(this.payload());
+    if (json === this.lastJSON) return;
+    this.lastJSON = json; this.savedAt = Date.now(); this.saveLocal();
+    if (this.cfg) { clearTimeout(this.pushT); this.pushT = setTimeout(() => this.push(), 2000); }
+  }
+  componentWillUnmount() { this.endDrag(); clearTimeout(this.pushT); document.removeEventListener('visibilitychange', this.onVis); }
+
+  fg(hex) {
+    let h = String(hex || '#888888').replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const n = parseInt(h, 16); if (isNaN(n)) return '#1d1b18';
+    const r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#1d1b18' : '#f4f1ea';
+  }
+
+  updInspo(id, patch) { this.setState(s => ({ inspo: s.inspo.map(q => q.id === id ? { ...q, ...patch } : q) })); }
+  addInspoImg(id, src) { this.setState(s => ({ inspo: s.inspo.map(q => q.id === id ? { ...q, imgs: [...(q.imgs || []), src] } : q) })); }
+  readImg(f, cb, max) {
+    const r = new FileReader();
+    r.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const k = Math.min(1, (max || 600) / Math.max(im.width, im.height));
+        const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        const d = c.toDataURL('image/jpeg', 0.82);
+        if (this.cfg) c.toBlob(b => this.putImg(b).then(cb).catch(() => cb(d)), 'image/jpeg', 0.82); else cb(d);
+      };
+      im.src = r.result;
+    };
+    r.readAsDataURL(f);
+  }
+  uploadImg(e, id) {
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!f || !id) return;
+    this.readImg(f, src => this.upd(id, { img: src }));
+  }
+
+  img(src, style) { return src ? React.createElement('img', { src, draggable: false, alt: '', style }) : null; }
+  upd(id, patch) { this.setState(s => ({ pieces: s.pieces.map(p => p.id === id ? { ...p, ...patch } : p) })); }
+  updItem(id, patch) { this.setState(s => ({ board: s.board.map(b => b.id === id ? { ...b, ...patch } : b) })); }
+  maxZ() { return this.state.board.reduce((m, b) => Math.max(m, b.z), 0); }
+
+  addPiece = () => {
+    const want = this.state.tab === 'phuket';
+    const p = { id: this.uid(), name: 'New piece', category: 'Tops', color: '#b8b0a2', material: '', size: '', where: '', meaning: '', status: want ? 'want' : 'keep', disp: '', trip: 'phuket', priority: '2' };
+    this.setState(s => ({ pieces: [...s.pieces, p], selId: p.id }));
+  };
+
+  addToBoard(pid) {
+    const n = this.state.board.length;
+    const it = { id: this.uid(), type: 'piece', pid, x: 40 + (n * 37) % 300, y: 40 + (n * 53) % 220, w: 150, h: 196, rot: 0, z: this.maxZ() + 1 };
+    this.setState(s => ({ board: [...s.board, it], boardSel: it.id }));
+  }
+  addNote = () => {
+    const it = { id: this.uid(), type: 'note', text: 'Text', x: 80, y: 80, w: 200, h: 60, rot: 0, z: this.maxZ() + 1 };
+    this.setState(s => ({ board: [...s.board, it], boardSel: it.id }));
+  };
+
+  startDrag(e, id, mode) {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.stopPropagation(); e.preventDefault();
+    const o = this.state.board.find(b => b.id === id);
+    const rect = this.rCanvas.current ? this.rCanvas.current.getBoundingClientRect() : { left: 0, top: 0 };
+    this.drag = { id, mode, sx: e.clientX, sy: e.clientY, o: { ...o }, rect };
+    if (this.state.boardSel !== id) this.setState({ boardSel: id });
+    window.addEventListener('pointermove', this.onMove);
+    window.addEventListener('pointerup', this.endDrag);
+  }
+  onMove = (e) => {
+    const d = this.drag; if (!d) return;
+    const dx = e.clientX - d.sx, dy = e.clientY - d.sy, o = d.o;
+    let p;
+    if (d.mode === 'move') p = { x: Math.round(o.x + dx), y: Math.round(o.y + dy) };
+    else if (d.mode === 'size') p = { w: Math.max(50, Math.round(o.w + dx)), h: Math.max(30, Math.round(o.h + dy)) };
+    else {
+      const cx = d.rect.left + o.x + o.w / 2, cy = d.rect.top + o.y + o.h / 2;
+      let a = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
+      if (a > 180) a -= 360;
+      if (e.shiftKey) a = Math.round(a / 15) * 15;
+      p = { rot: Math.round(a) };
+    }
+    this.updItem(d.id, p);
+  };
+  endDrag = () => {
+    this.drag = null;
+    window.removeEventListener('pointermove', this.onMove);
+    window.removeEventListener('pointerup', this.endDrag);
+  };
+
+  renderVals() {
+    const s = this.state;
+    const byId = {}; s.pieces.forEach(p => { byId[p.id] = p; });
+    const keep = s.pieces.filter(p => p.status === 'keep');
+    const letgo = s.pieces.filter(p => p.status === 'letgo');
+    const want = s.pieces.filter(p => p.status === 'want');
+    const pr = { 1: 'High', 2: 'Medium', 3: 'Low' };
+    const phuket = want.filter(p => p.trip !== 'later').sort((a, b) => a.priority - b.priority);
+    const later = want.filter(p => p.trip === 'later');
+    const go = tab => () => this.setState({ tab, boardSel: null });
+    const tabDefs = [['closet', 'Closet', s.pieces.length], ['inspo', 'Inspiration', (s.inspo || []).length], ['board', 'Board', s.board.length], ['gaps', 'Gaps', ''], ['phuket', 'Phuket', phuket.length]];
+    const tabs = tabDefs.map(([k, label, count]) => ({ label, count, go: go(k), line: s.tab === k ? '#1d1b18' : 'transparent', fg: s.tab === k ? '#1d1b18' : '#6b655c' }));
+
+    const meta = p => {
+      const bits = [p.point && 'Point', p.category, p.material, p.size].filter(Boolean);
+      if (p.status === 'want') bits.push((p.trip === 'later' ? 'Later' : 'Phuket') + ' · ' + pr[p.priority]);
+      return bits.join(' · ');
+    };
+    const card = p => ({
+      id: p.id, name: p.name || 'Untitled', color: p.color, imgEl: this.img(p.img, { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }), hasImg: !!p.img, meta: meta(p), status: p.status, disp: p.disp || '',
+      isLetGo: p.status === 'letgo',
+      border: s.selId === p.id ? '#1d1b18' : '#e2ddd3',
+      open: () => this.setState({ selId: p.id }),
+      onStatus: e => this.upd(p.id, { status: e.target.value }),
+      onDisp: e => this.upd(p.id, { disp: e.target.value })
+    });
+    const dn = letgo.filter(p => p.disp === 'donate').length, sl = letgo.filter(p => p.disp === 'sell').length;
+    const cols = [
+      { title: 'Keep', sub: String(keep.length), items: keep.map(card), empty: !keep.length },
+      { title: 'Let go', sub: letgo.length + ' · ' + dn + ' donate · ' + sl + ' sell', items: letgo.map(card), empty: !letgo.length },
+      { title: 'Want', sub: String(want.length), items: want.map(card), empty: !want.length }
+    ];
+
+    const boardItems = s.board.filter(b => b.type === 'note' || byId[b.pid]).map(b => {
+      const p = byId[b.pid] || {};
+      return {
+        ...b, isPiece: b.type === 'piece', isNote: b.type === 'note',
+        name: p.name, cat: p.point ? p.category + ' · Point' : p.category, color: p.color, imgEl: this.img(p.img, { flex: 1, minHeight: 0, width: '100%', objectFit: 'cover', pointerEvents: 'none', display: 'block' }), isImgPiece: b.type === 'piece' && !!p.img, isSwatch: b.type === 'piece' && !p.img, fg: this.fg(p.color),
+        sel: s.boardSel === b.id, outline: s.boardSel === b.id ? '1.5px solid #1d1b18' : 'none',
+        down: e => this.startDrag(e, b.id, 'move'),
+        sizeDown: e => this.startDrag(e, b.id, 'size'),
+        rotDown: e => this.startDrag(e, b.id, 'rot')
+      };
+    });
+    const onBoard = new Set(s.board.map(b => b.pid));
+    const railPieces = [...keep, ...want, ...letgo].map(p => ({
+      name: p.name || 'Untitled', color: p.color,
+      tag: (onBoard.has(p.id) ? '● ' : '') + ({ keep: 'KEEP', want: 'WANT', letgo: 'GO' })[p.status],
+      add: () => this.addToBoard(p.id)
+    }));
+    const sel = s.board.find(b => b.id === s.boardSel);
+
+    const gapRows = this.CATS.map(cat => {
+      const k = keep.filter(p => p.category === cat), w = want.filter(p => p.category === cat);
+      const t = s.targets[cat] || 0, open = Math.max(0, t - k.length - w.length), over = k.length + w.length - t;
+      const cells = [
+        ...k.map(p => ({ bg: p.color, bstyle: 'solid', bcolor: 'rgba(0,0,0,.12)', title: p.name + ' (kept)' })),
+        ...w.map(p => ({ bg: 'transparent', bstyle: 'dashed', bcolor: p.color, title: p.name + ' (wanted)' })),
+        ...Array.from({ length: open }, () => ({ bg: 'transparent', bstyle: 'dotted', bcolor: '#c4bdb1', title: 'Open slot' }))
+      ];
+      const note = over > 0 ? over + ' over target' : open > 0 ? open + ' open' : 'Complete';
+      return {
+        cat, cells, target: t, note, noteColor: over > 0 ? '#9a2e22' : '#6b655c',
+        dec: () => this.setState(st => ({ targets: { ...st.targets, [cat]: Math.max(0, (st.targets[cat] || 0) - 1) } })),
+        inc: () => this.setState(st => ({ targets: { ...st.targets, [cat]: (st.targets[cat] || 0) + 1 } }))
+      };
+    });
+    const totalOpen = gapRows.reduce((n, g) => n + g.cells.filter(c => c.bstyle === 'dotted').length, 0);
+    const palette = [...keep, ...want].map(p => ({ bg: p.color, title: p.name }));
+
+    const phuketRow = p => ({
+      name: p.name || 'Untitled', color: p.color, imgEl: this.img(p.img, { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }), hasImg: !!p.img, cat: p.category, where: p.where || '', priority: String(p.priority),
+      meta: [p.category, p.material, p.size && 'Size ' + p.size, p.color].filter(Boolean).join(' · '),
+      open: () => this.setState({ selId: p.id }),
+      onWhere: e => this.upd(p.id, { where: e.target.value }),
+      onPriority: e => this.upd(p.id, { priority: e.target.value }),
+      bought: () => this.upd(p.id, { status: 'keep', where: p.where ? p.where : 'Phuket' }),
+      toPhuket: () => this.upd(p.id, { trip: 'phuket' })
+    });
+
+    const ed = byId[s.selId];
+    const setF = k => e => this.upd(s.selId, { [k]: e.target.value });
+    const set = {}; ['name', 'category', 'status', 'disp', 'trip', 'priority', 'color', 'material', 'size', 'where', 'meaning', 'img'].forEach(k => { set[k] = setF(k); });
+
+    const SQL = "create table if not exists closet_sync (\n  id text primary key,\n  data jsonb not null,\n  updated_at timestamptz default now()\n);\nalter table closet_sync enable row level security;\ncreate policy \"closet rw\" on closet_sync for all to anon\n  using (true) with check (true);\n\ninsert into storage.buckets (id, name, public)\n  values ('closet', 'closet', true) on conflict do nothing;\ncreate policy \"closet upload\" on storage.objects for insert to anon\n  with check (bucket_id = 'closet');\ncreate policy \"closet update\" on storage.objects for update to anon\n  using (bucket_id = 'closet');";
+    const sync = {
+      sql: SQL, copyLabel: s.copied ? 'COPIED' : 'COPY',
+      copySql: () => { try { navigator.clipboard.writeText(SQL); } catch (e) {} this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1500); },
+      syncDot: { off: '#b5ad9f', idle: '#b5ad9f', syncing: '#c2a05a', ok: '#5f7a4f', error: '#a4452f' }[s.syncStatus] || '#b5ad9f',
+      syncOpen: s.syncOpen, syncMsg: s.syncMsg, cfgUrl: s.cfgUrl, cfgKey: s.cfgKey, cfgId: s.cfgId,
+      openSync: () => this.setState({ syncOpen: true }), closeSync: () => this.setState({ syncOpen: false }), stop: e => e.stopPropagation(),
+      onCfgUrl: e => this.setState({ cfgUrl: e.target.value }), onCfgKey: e => this.setState({ cfgKey: e.target.value }), onCfgId: e => this.setState({ cfgId: e.target.value }),
+      connect: () => {
+        const url = s.cfgUrl.trim().replace(/\/+$/, ''), key = s.cfgKey.trim(), id = s.cfgId.trim();
+        if (!/^https:\/\//.test(url) || !key || !id) return this.setState({ syncStatus: 'error', syncMsg: 'Fill in all three fields. URL starts with https://.' });
+        this.cfg = { url, key, id }; localStorage.setItem('closet.sync', JSON.stringify(this.cfg));
+        this.pull(true);
+      },
+      syncNow: () => { if (!this.cfg) return this.setState({ syncStatus: 'error', syncMsg: 'Connect first.' }); this.pull(); },
+      disconnect: () => { this.cfg = null; clearTimeout(this.pushT); localStorage.removeItem('closet.sync'); this.setState({ syncStatus: 'off', syncMsg: 'Disconnected. Data stays in this browser.' }); }
+    };
+
+    return {
+      ...sync,
+      tabs, addPiece: this.addPiece,
+      isCloset: s.tab === 'closet', isInspo: s.tab === 'inspo',
+      inspos: (s.inspo || []).map(q => ({
+        ...q, take: q.take || '',
+        imgs: (q.imgs || []).map((src, i) => ({ el: this.img(src, { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }), remove: () => this.updInspo(q.id, { imgs: q.imgs.filter((_, j) => j !== i) }) })),
+        slots: Array.from({ length: (n => n === 0 ? 3 : n % 3 === 0 ? 1 : 3 - n % 3)((q.imgs || []).length) }, (_, i) => i),
+        searchUrl: 'https://www.google.com/search?udm=2&q=' + encodeURIComponent(q.search || q.name),
+        onName: e => this.updInspo(q.id, { name: e.target.value }),
+        onKind: e => this.updInspo(q.id, { kind: e.target.value }),
+        onTake: e => this.updInspo(q.id, { take: e.target.value }),
+        onUrlKey: e => { if (e.key === 'Enter' && e.target.value.trim()) { const v = e.target.value.trim(); e.target.value = ''; this.addInspoImg(q.id, v); } },
+        upload: e => { const fs = Array.from(e.target.files || []); e.target.value = ''; fs.forEach(f => this.readImg(f, src => this.addInspoImg(q.id, src))); },
+        remove: () => this.setState(st => ({ inspo: st.inspo.filter(x => x.id !== q.id) }))
+      })),
+      inspoSummary: (s.inspo || []).length + ' sources · ' + (s.inspo || []).reduce((n, q) => n + (q.imgs || []).length, 0) + ' images',
+      addInspo: () => this.setState(st => ({ inspo: [...(st.inspo || []), { id: this.uid(), name: 'New inspiration', kind: 'Reference', take: '', search: '', imgs: [] }] })),
+      rules: s.rules || '', rulesRows: Math.max(3, (s.rules || '').split('\n').length),
+      setRules: e => this.setState({ rules: e.target.value }), isBoard: s.tab === 'board', isGaps: s.tab === 'gaps', isPhuket: s.tab === 'phuket',
+      cols,
+      rCanvas: this.rCanvas, boardItems, railPieces, boardEmpty: !boardItems.length, addNote: this.addNote,
+      canvasDown: e => { if (e.target === e.currentTarget) this.setState({ boardSel: null }); },
+      stop: e => e.stopPropagation(),
+      hasBoardSel: !!sel, selIsNote: !!sel && sel.type === 'note', selIsPiece: !!sel && sel.type === 'piece',
+      selNoteText: sel && sel.type === 'note' ? sel.text : '',
+      setNoteText: e => this.updItem(s.boardSel, { text: e.target.value }),
+      editSelPiece: () => sel && this.setState({ selId: sel.pid }),
+      forward: () => this.updItem(s.boardSel, { z: this.maxZ() + 1 }),
+      backward: () => this.setState(st => ({ board: st.board.map(b => b.id === st.boardSel ? { ...b, z: 0 } : { ...b, z: b.z + 1 }) })),
+      resetRot: () => this.updItem(s.boardSel, { rot: 0 }),
+      removeSel: () => this.setState(st => ({ board: st.board.filter(b => b.id !== st.boardSel), boardSel: null })),
+      gapRows, palette,
+      gapSummary: keep.length + ' kept · ' + letgo.length + ' to let go · ' + want.length + ' wanted · ' + totalOpen + ' open slots · ' + [...keep, ...want].filter(p => p.point).length + ' point pieces',
+      edPoint: !!ed && !!ed.point,
+      edHasImg: !!ed && !!ed.img,
+      edImgEl: ed ? this.img(ed.img, { width: '100%', height: 220, objectFit: 'cover', display: 'block', background: '#fff', flex: 'none' }) : null,
+      edImgUrl: ed && ed.img && !ed.img.startsWith('data:') ? ed.img : '',
+      imgPlaceholder: ed && ed.img && ed.img.startsWith('data:') ? 'Uploaded image (paste a URL to replace)' : 'Paste an image URL',
+      searchUrl: ed ? 'https://www.google.com/search?udm=2&q=' + encodeURIComponent([ed.name, ed.material, 'menswear'].filter(Boolean).join(' ')) : '#',
+      uploadImg: e => this.uploadImg(e, s.selId),
+      openSearch: e => {
+        const url = e.currentTarget.href;
+        let w = null;
+        try { w = (window.top || window).open(url, '_blank', 'noopener'); } catch (err) {}
+        if (!w) { try { w = window.open(url, '_blank'); } catch (err) {} }
+        if (w) e.preventDefault();
+      },
+      clearImg: () => this.upd(s.selId, { img: '' }),
+      togglePoint: () => ed && this.upd(ed.id, { point: !ed.point }),
+      phuketRows: phuket.map(phuketRow), laterRows: later.map(phuketRow), phuketEmpty: !phuket.length, hasLater: !!later.length,
+      phuketSummary: phuket.filter(p => p.priority == 1).length + ' high · ' + phuket.length + ' total',
+      hasEditor: !!ed,
+      ed: ed ? { ...ed, fg: this.fg(ed.color), disp: ed.disp || '', trip: ed.trip || 'phuket', priority: String(ed.priority || 2) } : {},
+      edLetGo: !!ed && ed.status === 'letgo', edWant: !!ed && ed.status === 'want',
+      whereLabel: ed && ed.status === 'want' ? 'Where to buy' : 'Where bought',
+      set,
+      closeEditor: () => this.setState({ selId: null }),
+      deletePiece: () => this.setState(st => ({ pieces: st.pieces.filter(p => p.id !== st.selId), board: st.board.filter(b => b.pid !== st.selId), selId: null }))
+    };
+  }
+}
+</script>
+</body>
+</html>

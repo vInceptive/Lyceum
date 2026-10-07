@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Vincent Quach — Me.exe</title>
+<link rel="icon" href="assets/logo-icon.png">
+<script>
+/* Phones and small tablets get the plain site: a windowed desktop needs a pointer
+   and room. ?desktop=1 forces the shell anyway. */
+(function () {
+  /* Oura sign-in returns here (#access_token=…). Save it for site.html, which
+     picks it up via the storage event; close the tab if we opened it. */
+  try {
+    if (location.hash.indexOf('access_token=') !== -1) {
+      var h = new URLSearchParams(location.hash.slice(1));
+      localStorage.setItem('vq_oura_expiry', String(Date.now() + parseInt(h.get('expires_in') || '2592000', 10) * 1000));
+      localStorage.setItem('vq_oura_token', h.get('access_token'));
+      history.replaceState(null, '', location.pathname + location.search);
+      window.close();
+      return;
+    }
+  } catch (e) {}
+  try {
+    var p = new URLSearchParams(location.search);
+    if (p.has('desktop')) return;
+    var coarse = matchMedia('(pointer: coarse)').matches;
+    var narrow = Math.min(screen.width, screen.height) < 820 || innerWidth < 820;
+    if (coarse && narrow) location.replace('site.html');
+  } catch (e) {}
+})();
+</script>
+<style>
+  body { margin:0; background:#12232b; overflow:hidden; font-family:Tahoma,Verdana,"DejaVu Sans",system-ui,sans-serif; }
+  a { color:#7fc3d8; }
+  a:hover { color:#d98f7a; }
+  @keyframes winIn { from { opacity:0; transform:scale(.97) } to { opacity:1; transform:scale(1) } }
+</style>
+<script src="assets/icon-data.js"></script>
+</helmet>
+
+<template id="__bundler_thumbnail">
+<div style="position:fixed;inset:0;background:#16111a;overflow:hidden;z-index:1">
+<style>
+@keyframes vqSpin{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+@keyframes vqPulse{0%,100%{transform:scale(.8);opacity:.16}50%{transform:scale(1.2);opacity:.32}}
+@keyframes vqSpark{0%{opacity:0;transform:scale(.4) rotate(0deg)}15%{opacity:.9;transform:scale(1) rotate(20deg)}35%{opacity:0;transform:scale(.5) rotate(40deg)}100%{opacity:0;transform:scale(.4) rotate(40deg)}}
+@keyframes vqType{0%{transform:translateX(0);animation-timing-function:steps(10,end)}40%{transform:translateX(10ch)}62%{transform:translateX(10ch);animation-timing-function:steps(10,end)}78%{transform:translateX(0)}100%{transform:translateX(0)}}
+@keyframes vqBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+</style>
+<div style="position:absolute;left:50%;top:50%;width:0;height:0"><div style="position:absolute;left:-7.426vmin;top:-7.426vmin;width:14.852vmin;height:14.852vmin;border-radius:50%;border:1px solid rgba(231,220,224,.07);box-sizing:border-box"></div><div style="position:absolute;left:-8.8vmin;top:-8.8vmin;width:17.601vmin;height:17.601vmin;border-radius:50%;border:1px solid rgba(231,220,224,.07);box-sizing:border-box"></div><div style="position:absolute;left:-9.702vmin;top:-9.702vmin;width:19.404vmin;height:19.404vmin;border-radius:50%;border:1px solid rgba(231,220,224,.07);box-sizing:border-box"></div><div style="position:absolute;left:-11.114vmin;top:-11.114vmin;width:22.228vmin;height:22.228vmin;border-radius:50%;border:1px solid rgba(231,220,224,.07);box-sizing:border-box"></div><div style="position:absolute;left:-17.416vmin;top:-17.416vmin;width:34.832vmin;height:34.832vmin;border-radius:50%;border:1px solid rgba(231,220,224,.07);box-sizing:border-box"></div><div style="position:absolute;left:-22.277vmin;top:-22.277vmin;width:44.553vmin;height:44.553vmin;border-radius:50%;border:1px solid rgba(231,220,224,.07);box-sizing:border-box"></div><div style="position:absolute;left:-30.059vmin;top:-30.059vmin;width:60.119vmin;height:60.119vmin;border-radius:50%;border:1px solid rgba(231,220,224,.07);box-sizing:border-box"></div><div style="position:absolute;left:-36.701vmin;top:-36.701vmin;width:73.403vmin;height:73.403vmin;border-radius:50%;border:1px solid rgba(231,220,224,.07);box-sizing:border-box"></div><div style="position:absolute;left:0;top:0;width:0;height:0;transform:rotate(-255.55deg)"><div style="position:absolute;left:0;top:0;width:0;height:0;will-change:transform;animation:vqSpin 1.2s linear infinite"><div style="position:absolute;left:-7.583vmin;top:-7.583vmin;width:15.166vmin;height:15.166vmin;border-radius:50%;background:conic-gradient(from 90deg,rgba(201,195,186,0.7) 0deg,rgba(201,195,186,0.25) 45deg,rgba(201,195,186,0) 100deg,transparent 360deg);-webkit-mask:radial-gradient(circle closest-side,transparent calc(100% - 0.314vmin),#000 calc(100% - 0.314vmin),#000 100%,transparent 100%);mask:radial-gradient(circle closest-side,transparent calc(100% - 0.314vmin),#000 calc(100% - 0.314vmin),#000 100%,transparent 100%)"></div><div style="position:absolute;left:6.673vmin;top:-0.753vmin;width:1.505vmin;height:1.505vmin;border-radius:50%;background:radial-gradient(circle,rgba(201,195,186,0.9) 0%,rgba(201,195,186,0.35) 30%,rgba(201,195,186,0) 70%);animation:vqPulse 1.3s ease-in-out -0s infinite"></div><div style="position:absolute;left:7.175vmin;top:-0.251vmin;width:0.502vmin;height:0.502vmin;border-radius:50%;background:radial-gradient(circle at 35% 32%,#fff 0%,#c9c3ba 45%,#c9c3ba 100%);box-shadow:0 0 0.401vmin rgba(201,195,186,0.9),0 0 1.004vmin rgba(201,195,186,0.45)"></div><div style="position:absolute;left:6.573vmin;top:-0.853vmin;width:1.706vmin;height:1.706vmin;background:#fff;clip-path:polygon(50% 0%,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0% 50%,46% 46%);opacity:0;animation:vqSpark 2.73s ease-out -0s infinite"></div></div></div><div style="position:absolute;left:0;top:0;width:0;height:0;transform:rotate(-344.31deg)"><div style="position:absolute;left:0;top:0;width:0;height:0;will-change:transform;animation:vqSpin 3.08s linear infinite"><div style="position:absolute;left:-9.062vmin;top:-9.062vmin;width:18.123vmin;height:18.123vmin;border-radius:50%;background:conic-gradient(from 90deg,rgba(243,217,168,0.7) 0deg,rgba(243,217,168,0.25) 45deg,rgba(243,217,168,0) 100deg,transparent 360deg);-webkit-mask:radial-gradient(circle closest-side,transparent calc(100% - 0.523vmin),#000 calc(100% - 0.523vmin),#000 100%,transparent 100%);mask:radial-gradient(circle closest-side,transparent calc(100% - 0.523vmin),#000 calc(100% - 0.523vmin),#000 100%,transparent 100%)"></div><div style="position:absolute;left:7.546vmin;top:-1.255vmin;width:2.509vmin;height:2.509vmin;border-radius:50%;background:radial-gradient(circle,rgba(243,217,168,0.9) 0%,rgba(243,217,168,0.35) 30%,rgba(243,217,168,0) 70%);animation:vqPulse 1.67s ease-in-out -0.61s infinite"></div><div style="position:absolute;left:8.382vmin;top:-0.418vmin;width:0.836vmin;height:0.836vmin;border-radius:50%;background:radial-gradient(circle at 35% 32%,#fff 0%,#f3d9a8 45%,#f3d9a8 100%);box-shadow:0 0 0.669vmin rgba(243,217,168,0.9),0 0 1.673vmin rgba(243,217,168,0.45)"></div><div style="position:absolute;left:7.378vmin;top:-1.422vmin;width:2.844vmin;height:2.844vmin;background:#fff;clip-path:polygon(50% 0%,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0% 50%,46% 46%);opacity:0;animation:vqSpark 3.51s ease-out -0.61s infinite"></div></div></div><div style="position:absolute;left:0;top:0;width:0;height:0;transform:rotate(-3.62deg)"><div style="position:absolute;left:0;top:0;width:0;height:0;will-change:transform;animation:vqSpin 5s linear infinite"><div style="position:absolute;left:-9.989vmin;top:-9.989vmin;width:19.979vmin;height:19.979vmin;border-radius:50%;background:conic-gradient(from 90deg,rgba(106,170,240,0.7) 0deg,rgba(106,170,240,0.25) 45deg,rgba(106,170,240,0) 100deg,transparent 360deg);-webkit-mask:radial-gradient(circle closest-side,transparent calc(100% - 0.575vmin),#000 calc(100% - 0.575vmin),#000 100%,transparent 100%);mask:radial-gradient(circle closest-side,transparent calc(100% - 0.575vmin),#000 calc(100% - 0.575vmin),#000 100%,transparent 100%)"></div><div style="position:absolute;left:8.322vmin;top:-1.38vmin;width:2.76vmin;height:2.76vmin;border-radius:50%;background:radial-gradient(circle,rgba(106,170,240,0.9) 0%,rgba(106,170,240,0.35) 30%,rgba(106,170,240,0) 70%);animation:vqPulse 2.04s ease-in-out -1.22s infinite"></div><div style="position:absolute;left:9.242vmin;top:-0.46vmin;width:0.92vmin;height:0.92vmin;border-radius:50%;background:radial-gradient(circle at 35% 32%,#fff 0%,#6aaaf0 45%,#6aaaf0 100%);box-shadow:0 0 0.736vmin rgba(106,170,240,0.9),0 0 1.84vmin rgba(106,170,240,0.45)"></div><div style="position:absolute;left:8.138vmin;top:-1.564vmin;width:3.128vmin;height:3.128vmin;background:#fff;clip-path:polygon(50% 0%,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0% 50%,46% 46%);opacity:0;animation:vqSpark 4.28s ease-out -1.22s infinite"></div></div></div><div style="position:absolute;left:0;top:0;width:0;height:0;transform:rotate(-71.43deg)"><div style="position:absolute;left:0;top:0;width:0;height:0;will-change:transform;animation:vqSpin 9.4s linear infinite"><div style="position:absolute;left:-11.323vmin;top:-11.323vmin;width:22.646vmin;height:22.646vmin;border-radius:50%;background:conic-gradient(from 90deg,rgba(236,122,76,0.7) 0deg,rgba(236,122,76,0.25) 24.11deg,rgba(236,122,76,0) 53.59deg,transparent 360deg);-webkit-mask:radial-gradient(circle closest-side,transparent calc(100% - 0.418vmin),#000 calc(100% - 0.418vmin),#000 100%,transparent 100%);mask:radial-gradient(circle closest-side,transparent calc(100% - 0.418vmin),#000 calc(100% - 0.418vmin),#000 100%,transparent 100%)"></div><div style="position:absolute;left:10.11vmin;top:-1.004vmin;width:2.007vmin;height:2.007vmin;border-radius:50%;background:radial-gradient(circle,rgba(236,122,76,0.9) 0%,rgba(236,122,76,0.35) 30%,rgba(236,122,76,0) 70%);animation:vqPulse 1.31s ease-in-out -0.33s infinite"></div><div style="position:absolute;left:10.779vmin;top:-0.335vmin;width:0.669vmin;height:0.669vmin;border-radius:50%;background:radial-gradient(circle at 35% 32%,#fff 0%,#ec7a4c 45%,#ec7a4c 100%);box-shadow:0 0 0.535vmin rgba(236,122,76,0.9),0 0 1.338vmin rgba(236,122,76,0.45)"></div><div style="position:absolute;left:9.977vmin;top:-1.137vmin;width:2.275vmin;height:2.275vmin;background:#fff;clip-path:polygon(50% 0%,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0% 50%,46% 46%);opacity:0;animation:vqSpark 2.75s ease-out -0.33s infinite"></div></div></div><div style="position:absolute;left:0;top:0;width:0;height:0;transform:rotate(-125.66deg)"><div style="position:absolute;left:0;top:0;width:0;height:0;will-change:transform;animation:vqSpin 59.31s linear infinite"><div style="position:absolute;left:-17.991vmin;top:-17.991vmin;width:35.982vmin;height:35.982vmin;border-radius:50%;background:conic-gradient(from 90deg,rgba(236,198,150,0.7) 0deg,rgba(236,198,150,0.25) 3.82deg,rgba(236,198,150,0) 8.5deg,transparent 360deg);-webkit-mask:radial-gradient(circle closest-side,transparent calc(100% - 1.15vmin),#000 calc(100% - 1.15vmin),#000 100%,transparent 100%);mask:radial-gradient(circle closest-side,transparent calc(100% - 1.15vmin),#000 calc(100% - 1.15vmin),#000 100%,transparent 100%)"></div><div style="position:absolute;left:14.656vmin;top:-2.76vmin;width:5.52vmin;height:5.52vmin;border-radius:50%;background:radial-gradient(circle,rgba(236,198,150,0.9) 0%,rgba(236,198,150,0.35) 30%,rgba(236,198,150,0) 70%);animation:vqPulse 1.68s ease-in-out -0.94s infinite"></div><div style="position:absolute;left:16.496vmin;top:-0.92vmin;width:1.84vmin;height:1.84vmin;border-radius:50%;background:radial-gradient(circle at 35% 32%,#fff 0%,#ecc696 45%,#ecc696 100%);box-shadow:0 0 1.472vmin rgba(236,198,150,0.9),0 0 3.68vmin rgba(236,198,150,0.45)"></div><div style="position:absolute;left:14.288vmin;top:-3.128vmin;width:6.256vmin;height:6.256vmin;background:#fff;clip-path:polygon(50% 0%,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0% 50%,46% 46%);opacity:0;animation:vqSpark 3.53s ease-out -0.94s infinite"></div></div></div><div style="position:absolute;left:0;top:0;width:0;height:0;transform:rotate(-16.63deg)"><div style="position:absolute;left:0;top:0;width:0;height:0;will-change:transform;animation:vqSpin 147.28s linear infinite"><div style="position:absolute;left:-22.773vmin;top:-22.773vmin;width:45.546vmin;height:45.546vmin;border-radius:50%;background:conic-gradient(from 90deg,rgba(242,220,166,0.7) 0deg,rgba(242,220,166,0.25) 2.7deg,rgba(242,220,166,0) 6deg,transparent 360deg);-webkit-mask:radial-gradient(circle closest-side,transparent calc(100% - 0.993vmin),#000 calc(100% - 0.993vmin),#000 100%,transparent 100%);mask:radial-gradient(circle closest-side,transparent calc(100% - 0.993vmin),#000 calc(100% - 0.993vmin),#000 100%,transparent 100%)"></div><div style="position:absolute;left:19.893vmin;top:-2.384vmin;width:4.767vmin;height:4.767vmin;border-radius:50%;background:radial-gradient(circle,rgba(242,220,166,0.9) 0%,rgba(242,220,166,0.35) 30%,rgba(242,220,166,0) 70%);animation:vqPulse 2.05s ease-in-out -0.05s infinite"></div><div style="position:absolute;left:21.482vmin;top:-0.795vmin;width:1.589vmin;height:1.589vmin;border-radius:50%;background:radial-gradient(circle at 35% 32%,#fff 0%,#f2dca6 45%,#f2dca6 100%);box-shadow:0 0 1.271vmin rgba(242,220,166,0.9),0 0 3.178vmin rgba(242,220,166,0.45)"></div><div style="position:absolute;left:20.767vmin;top:-0.437vmin;width:3.019vmin;height:0.874vmin;border-radius:50%;border:0.134vmin solid rgba(242,220,166,.85);box-sizing:border-box;transform:rotate(-24deg)"></div><div style="position:absolute;left:19.575vmin;top:-2.701vmin;width:5.403vmin;height:5.403vmin;background:#fff;clip-path:polygon(50% 0%,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0% 50%,46% 46%);opacity:0;animation:vqSpark 4.3s ease-out -0.05s infinite"></div></div></div><div style="position:absolute;left:0;top:0;width:0;height:0;transform:rotate(-67.78deg)"><div style="position:absolute;left:0;top:0;width:0;height:0;will-change:transform;animation:vqSpin 420.05s linear infinite"><div style="position:absolute;left:-30.425vmin;top:-30.425vmin;width:60.851vmin;height:60.851vmin;border-radius:50%;background:conic-gradient(from 90deg,rgba(174,233,240,0.7) 0deg,rgba(174,233,240,0.25) 2.7deg,rgba(174,233,240,0) 6deg,transparent 360deg);-webkit-mask:radial-gradient(circle closest-side,transparent calc(100% - 0.732vmin),#000 calc(100% - 0.732vmin),#000 100%,transparent 100%);mask:radial-gradient(circle closest-side,transparent calc(100% - 0.732vmin),#000 calc(100% - 0.732vmin),#000 100%,transparent 100%)"></div><div style="position:absolute;left:28.303vmin;top:-1.756vmin;width:3.513vmin;height:3.513vmin;border-radius:50%;background:radial-gradient(circle,rgba(174,233,240,0.9) 0%,rgba(174,233,240,0.35) 30%,rgba(174,233,240,0) 70%);animation:vqPulse 1.32s ease-in-out -0.66s infinite"></div><div style="position:absolute;left:29.474vmin;top:-0.585vmin;width:1.171vmin;height:1.171vmin;border-radius:50%;background:radial-gradient(circle at 35% 32%,#fff 0%,#aee9f0 45%,#aee9f0 100%);box-shadow:0 0 0.937vmin rgba(174,233,240,0.9),0 0 2.342vmin rgba(174,233,240,0.45)"></div><div style="position:absolute;left:28.069vmin;top:-1.991vmin;width:3.981vmin;height:3.981vmin;background:#fff;clip-path:polygon(50% 0%,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0% 50%,46% 46%);opacity:0;animation:vqSpark 2.77s ease-out -0.66s infinite"></div></div></div><div style="position:absolute;left:0;top:0;width:0;height:0;transform:rotate(-3.28deg)"><div style="position:absolute;left:0;top:0;width:0;height:0;will-change:transform;animation:vqSpin 823.95s linear infinite"><div style="position:absolute;left:-37.067vmin;top:-37.067vmin;width:74.134vmin;height:74.134vmin;border-radius:50%;background:conic-gradient(from 90deg,rgba(106,140,242,0.7) 0deg,rgba(106,140,242,0.25) 2.7deg,rgba(106,140,242,0) 6deg,transparent 360deg);-webkit-mask:radial-gradient(circle closest-side,transparent calc(100% - 0.732vmin),#000 calc(100% - 0.732vmin),#000 100%,transparent 100%);mask:radial-gradient(circle closest-side,transparent calc(100% - 0.732vmin),#000 calc(100% - 0.732vmin),#000 100%,transparent 100%)"></div><div style="position:absolute;left:34.945vmin;top:-1.756vmin;width:3.513vmin;height:3.513vmin;border-radius:50%;background:radial-gradient(circle,rgba(106,140,242,0.9) 0%,rgba(106,140,242,0.35) 30%,rgba(106,140,242,0) 70%);animation:vqPulse 1.69s ease-in-out -1.27s infinite"></div><div style="position:absolute;left:36.116vmin;top:-0.585vmin;width:1.171vmin;height:1.171vmin;border-radius:50%;background:radial-gradient(circle at 35% 32%,#fff 0%,#6a8cf2 45%,#6a8cf2 100%);box-shadow:0 0 0.937vmin rgba(106,140,242,0.9),0 0 2.342vmin rgba(106,140,242,0.45)"></div><div style="position:absolute;left:34.711vmin;top:-1.991vmin;width:3.981vmin;height:3.981vmin;background:#fff;clip-path:polygon(50% 0%,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0% 50%,46% 46%);opacity:0;animation:vqSpark 3.55s ease-out -1.27s infinite"></div></div></div><div style="position:absolute;left:-10.036vmin;top:-10.036vmin;width:20.073vmin;height:20.073vmin;border-radius:50%;background:radial-gradient(circle,rgba(255,217,138,.6) 0%,rgba(255,159,74,.2) 45%,rgba(255,159,74,0) 100%)"></div><div style="position:absolute;left:-3.345vmin;top:-3.345vmin;width:6.691vmin;height:6.691vmin;border-radius:50%;background:radial-gradient(circle at 40% 38%,#fff1c4 0%,#ffc766 60%,#f29a3c 100%);box-shadow:0 0 1.505vmin rgba(255,199,102,.9),0 0 4.182vmin rgba(255,159,74,.5)"></div></div><div style="position:absolute;left:50%;bottom:6vh;transform:translateX(-50%);font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;font-size:clamp(18px,2.8vmin,30px);color:#fff;letter-spacing:0;line-height:1.4;white-space:pre">
+<div style="position:relative;width:11ch;overflow:hidden">loading...<div style="position:absolute;top:0;bottom:0;left:0;width:100%;background:#16111a;will-change:transform;animation:vqType 5s linear infinite"><div style="position:absolute;left:0;top:12%;bottom:12%;width:.55ch;background:#fff;animation:vqBlink .6s linear infinite"></div></div></div></div></div>
+</template>
+
+<div style="position:fixed;inset:0;overflow:hidden;user-select:none">
+
+  <!-- wallpaper -->
+  <div style="{{ wallStyle }}"></div>
+
+  <!-- desktop icons -->
+  <div style="position:absolute;top:18px;left:14px;display:flex;flex-direction:column;flex-wrap:wrap;align-items:center;align-content:flex-start;gap:6px 8px;max-height:min(calc(100% - 62px),528px);z-index:1">
+    <sc-for list="{{ icons }}" as="ic" hint-placeholder-count="4">
+      <button data-app="{{ ic.id }}" onDoubleClick="{{ openApp }}" onClick="{{ selectIcon }}" style="{{ ic.style }}" style-hover="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.26)">
+        <span style="{{ ic.tile }}">
+        <sc-if value="{{ ic.isImg }}" hint-placeholder-val="{{ false }}">
+          <span role="img" aria-label="{{ ic.label }}" style="{{ ic.artStyle }}"></span>
+        </sc-if>
+        <sc-if value="{{ ic.isMono }}" hint-placeholder-val="{{ true }}">{{ ic.mono }}</sc-if>
+        </span>
+        <span style="font-size:11px;line-height:1.25;color:#f2ece4;text-shadow:0 1px 2px rgba(0,0,0,.9);text-align:center;max-width:76px;overflow-wrap:anywhere;text-wrap:pretty">{{ ic.label }}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <!-- windows -->
+  <sc-for list="{{ wins }}" as="w" hint-placeholder-count="0">
+    <div data-id="{{ w.id }}" onMouseDown="{{ focusWin }}" style="{{ w.frame }}">
+
+      <div data-id="{{ w.id }}" onMouseDown="{{ startDrag }}" onDoubleClick="{{ maxWin }}" style="{{ w.bar }}">
+        <span style="width:15px;height:15px;flex:none;display:block;position:relative">
+          <sc-if value="{{ w.hasIcon }}" hint-placeholder-val="{{ false }}">
+            <span style="{{ w.iconStyle }}"></span>
+          </sc-if>
+          <sc-if value="{{ w.noIcon }}" hint-placeholder-val="{{ true }}">
+            <span style="position:absolute;inset:0;border-radius:3px;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:8px;font-weight:700;color:#fff">{{ w.mono }}</span>
+          </sc-if>
+        </span>
+        <span style="font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">{{ w.title }}</span>
+        <span style="display:flex;gap:3px;flex:none">
+          <button data-id="{{ w.id }}" onClick="{{ minWin }}" aria-label="Minimize" style="width:20px;height:18px;border:1px solid rgba(255,255,255,.45);border-radius:3px;background:rgba(255,255,255,.16);color:#fff;font-size:11px;line-height:1;cursor:pointer;padding:0" style-hover="background:rgba(255,255,255,.3)">_</button>
+          <button data-id="{{ w.id }}" onClick="{{ maxWin }}" aria-label="Maximize" style="width:20px;height:18px;border:1px solid rgba(255,255,255,.45);border-radius:3px;background:rgba(255,255,255,.16);color:#fff;font-size:9px;line-height:1;cursor:pointer;padding:0" style-hover="background:rgba(255,255,255,.3)">□</button>
+          <button data-id="{{ w.id }}" onClick="{{ closeWin }}" aria-label="Close" style="width:20px;height:18px;border:1px solid rgba(255,255,255,.5);border-radius:3px;background:rgba(180,60,50,.75);color:#fff;font-size:11px;line-height:1;cursor:pointer;padding:0" style-hover="background:rgba(210,70,55,.95)">×</button>
+        </span>
+      </div>
+
+      <!-- window chrome -->
+      <sc-if value="{{ w.hasChrome }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;background:#d6d2c6;border-bottom:1px solid #6f6a5e">
+          <!-- menu bar -->
+          <div data-menuroot="1" style="position:relative;z-index:20;display:flex;align-items:center;gap:2px;height:20px;padding:0 4px;border-bottom:1px solid #b9b4a6">
+            <sc-for list="{{ w.menus }}" as="m" hint-placeholder-count="6">
+              <span style="position:relative">
+                <button data-id="{{ w.id }}" data-menu="{{ m.name }}" onClick="{{ toggleMenu }}" onMouseEnter="{{ hoverMenu }}" style="{{ m.style }}">{{ m.name }}</button>
+                <sc-if value="{{ m.open }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute;top:100%;left:0;display:block;min-width:198px;padding:2px;background:#d6d2c6;border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #4a453b;border-bottom:1px solid #4a453b;box-shadow:3px 3px 6px rgba(0,0,0,.35)">
+                    <sc-for list="{{ m.items }}" as="it" hint-placeholder-count="5">
+                      <span style="display:block">
+                        <sc-if value="{{ it.isSep }}" hint-placeholder-val="{{ false }}">
+                          <span style="display:block;height:0;margin:3px 2px;border-top:1px solid #a29c8c;border-bottom:1px solid #fdfbf6"></span>
+                        </sc-if>
+                        <sc-if value="{{ it.isItem }}" hint-placeholder-val="{{ true }}">
+                          <button data-id="{{ w.id }}" data-act="{{ it.act }}" onClick="{{ runMenuItem }}" style="{{ it.style }}" style-hover="background:#2f5f7a;color:#fff">
+                            <span style="flex:1;text-align:left;white-space:nowrap">{{ it.label }}</span>
+                            <span style="flex:none;padding-left:22px;color:#6b6459;font-size:10px">{{ it.accel }}</span>
+                          </button>
+                        </sc-if>
+                      </span>
+                    </sc-for>
+                  </span>
+                </sc-if>
+              </span>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ w.isBrowser }}" hint-placeholder-val="{{ false }}">
+          <!-- toolbar -->
+          <div style="display:flex;align-items:stretch;gap:1px;padding:3px 4px;border-bottom:1px solid #b9b4a6;background:linear-gradient(180deg,#e2ded2,#d2cec2)">
+            <span style="width:4px;border-left:1px solid #fff;border-right:1px solid #a29c8c;margin-right:3px"></span>
+            <button data-id="{{ w.id }}" data-dir="back" onClick="{{ navBrowser }}" title="Back" style="{{ w.tbMain }}"><span style="font-size:13px;color:#2a4d66">◀</span>Back</button>
+            <button data-id="{{ w.id }}" data-dir="fwd" onClick="{{ navBrowser }}" title="Forward" style="{{ w.tbMain }}"><span style="font-size:13px;color:#2a4d66">▶</span>Forward</button>
+            <span style="width:4px;border-left:1px solid #fff;border-right:1px solid #a29c8c;margin:2px 3px"></span>
+            <button data-id="{{ w.id }}" data-dir="stop" onClick="{{ navBrowser }}" title="Stop" style="{{ w.tbIcon }}"><span style="font-size:12px;color:#93372c">✖</span></button>
+            <button data-id="{{ w.id }}" data-dir="reload" onClick="{{ navBrowser }}" title="Refresh" style="{{ w.tbIcon }}"><span style="font-size:12px;color:#2f6b3f">↻</span></button>
+            <button data-id="{{ w.id }}" data-dir="home" onClick="{{ navBrowser }}" title="Home" style="{{ w.tbIcon }}"><span style="font-size:12px;color:#7a5c1f">⌂</span></button>
+            <span style="width:4px;border-left:1px solid #fff;border-right:1px solid #a29c8c;margin:2px 3px"></span>
+            <button data-id="{{ w.id }}" data-dir="print" onClick="{{ navBrowser }}" title="Print" style="{{ w.tbIcon }}"><span style="font-size:11px;color:#4a443c">▤</span></button>
+          </div>
+
+          <!-- address bar -->
+          <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #b9b4a6">
+            <span style="font-size:11px;color:#3a352d;flex:none;padding-left:2px">Address</span>
+            <div style="flex:1;display:flex;align-items:center;gap:6px;height:20px;padding:0 6px;background:#fff;border-top:1px solid #6f6a5e;border-left:1px solid #6f6a5e;border-right:1px solid #f4f1e9;border-bottom:1px solid #f4f1e9;min-width:0">
+              <span style="{{ w.faviconStyle }}"></span>
+              <input data-id="{{ w.id }}" value="{{ w.addr }}" onChange="{{ onAddr }}" onKeyDown="{{ onAddrKey }}" spellcheck="false" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:11px;color:#1e1b16">
+            </div>
+            <button data-id="{{ w.id }}" data-dir="go" onClick="{{ navBrowser }}" style="display:flex;align-items:center;gap:4px;flex:none;height:20px;padding:0 8px;font-family:inherit;font-size:11px;color:#1e1b16;cursor:pointer;background:linear-gradient(180deg,#e8e4d8,#cfcabc);border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #6f6a5e;border-bottom:1px solid #6f6a5e" style-hover="background:linear-gradient(180deg,#f4f1e6,#ddd8c9)"><span style="color:#2f6b3f;font-size:11px">→</span>Go</button>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ w.isComputer }}" hint-placeholder-val="{{ false }}">
+          <!-- explorer toolbar -->
+          <div style="display:flex;align-items:stretch;gap:1px;padding:3px 4px;border-bottom:1px solid #b9b4a6;background:linear-gradient(180deg,#e2ded2,#d2cec2)">
+            <span style="width:4px;border-left:1px solid #fff;border-right:1px solid #a29c8c;margin-right:3px"></span>
+            <button style="{{ w.tbMain }}"><span style="font-size:13px;color:#2a4d66">◀</span>Back</button>
+            <button style="{{ w.tbMain }}"><span style="font-size:13px;color:#2a4d66">▶</span>Forward</button>
+            <button title="Up" style="{{ w.tbIcon }}"><span style="font-size:12px;color:#7a5c1f">▲</span></button>
+            <span style="width:4px;border-left:1px solid #fff;border-right:1px solid #a29c8c;margin:2px 3px"></span>
+            <button style="{{ w.tbMain }}"><span style="font-size:12px;color:#2f6b3f">⌕</span>Search</button>
+            <button style="{{ w.tbMain }}"><span style="font-size:12px;color:#7a5c1f">▤</span>Folders</button>
+            <span style="width:4px;border-left:1px solid #fff;border-right:1px solid #a29c8c;margin:2px 3px"></span>
+            <button title="Views" style="{{ w.tbIcon }}"><span style="font-size:11px;color:#4a443c">▦</span></button>
+          </div>
+          <!-- explorer address -->
+          <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #b9b4a6">
+            <span style="font-size:11px;color:#3a352d;flex:none;padding-left:2px">Address</span>
+            <div style="flex:1;display:flex;align-items:center;gap:6px;height:20px;padding:0 6px;background:#fff;border-top:1px solid #6f6a5e;border-left:1px solid #6f6a5e;border-right:1px solid #f4f1e9;border-bottom:1px solid #f4f1e9;min-width:0">
+              <span style="{{ w.faviconStyle }}"></span>
+              <span style="flex:1;min-width:0;font-size:11px;color:#1e1b16;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">My Computer</span>
+              <span style="flex:none;font-size:9px;color:#6b6459">▾</span>
+            </div>
+            <button style="display:flex;align-items:center;gap:4px;flex:none;height:20px;padding:0 8px;font-family:inherit;font-size:11px;color:#1e1b16;cursor:default;background:linear-gradient(180deg,#e8e4d8,#cfcabc);border-top:1px solid #fff;border-left:1px solid #fff;border-right:1px solid #6f6a5e;border-bottom:1px solid #6f6a5e"><span style="color:#2f6b3f;font-size:11px">→</span>Go</button>
+          </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- content -->
+      <div style="flex:1;position:relative;min-height:0;background:#f5f1e9;overflow:hidden">
+        <sc-if value="{{ w.isBrowser }}" hint-placeholder-val="{{ false }}">
+          <iframe src="{{ w.src }}" title="{{ w.title }}" style="position:absolute;inset:0;width:100%;height:100%;border:none;display:block"></iframe>
+        </sc-if>
+        <sc-if value="{{ w.isGame }}" hint-placeholder-val="{{ false }}">
+          <iframe data-game="{{ w.id }}" src="{{ w.src }}" title="{{ w.title }}" allow="autoplay" style="position:absolute;inset:0;width:100%;height:100%;border:none;display:block;background:#000"></iframe>
+          <sc-if value="{{ w.gameIdle }}" hint-placeholder-val="{{ true }}">
+            <div data-id="{{ w.id }}" onClick="{{ activateGame }}" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;background:rgba(8,10,14,.62)">
+              <span style="width:40px;height:40px;background-image:url('assets/icons/space-cadets.png');background-size:contain;background-repeat:no-repeat;background-position:center"></span>
+              <span style="font-size:12px;font-weight:700;color:#fff;letter-spacing:.04em">Click to play</span>
+              <span style="font-size:11px;color:rgba(255,255,255,.72)">Space launches · Z and / are the flippers</span>
+            </div>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{ w.isReader }}" hint-placeholder-val="{{ false }}">
+          <dc-import name="Visible" hint-size="100%,100%"></dc-import>
+        </sc-if>
+        <sc-if value="{{ w.isAnklet }}" hint-placeholder-val="{{ false }}">
+          <dc-import name="Anklet" hint-size="100%,100%"></dc-import>
+        </sc-if>
+        <sc-if value="{{ w.isCloset }}" hint-placeholder-val="{{ false }}">
+          <dc-import name="Closet" hint-size="100%,100%"></dc-import>
+        </sc-if>
+        <sc-if value="{{ w.isCristo }}" hint-placeholder-val="{{ false }}">
+          <dc-import name="MonteCristo" hint-size="100%,100%"></dc-import>
+        </sc-if>
+        <sc-if value="{{ w.isStub }}" hint-placeholder-val="{{ false }}">
+          <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px;text-align:center">
+            <div style="width:44px;height:44px;border:2px dashed #b3ab9d;border-radius:8px;display:grid;place-items:center;font-size:15px;font-weight:700;color:#a9a294">{{ w.mono }}</div>
+            <div style="font-size:12px;color:#4a443c;line-height:1.6;max-width:280px">{{ w.stubText }}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ w.isFolder }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:#f5f1e9">
+            <div style="flex:none;display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #c3bcab;background:linear-gradient(180deg,#e2ded2,#d2cec2)">
+              <sc-if value="{{ w.canIcons }}" hint-placeholder-val="{{ true }}">
+                <button data-id="{{ w.id }}" data-view="icons" onClick="{{ setView }}" style="{{ w.iconsBtn }}"><span style="font-size:11px;color:#7a5c1f">▦</span>Icons</button>
+              </sc-if>
+              <button data-id="{{ w.id }}" data-view="list" onClick="{{ setView }}" style="{{ w.listBtn }}"><span style="font-size:11px;color:#7a5c1f">▤</span>List</button>
+            </div>
+            <sc-if value="{{ w.viewIcons }}" hint-placeholder-val="{{ true }}">
+              <div data-id="{{ w.id }}" onMouseDown="{{ clearFileSel }}" style="flex:1;min-height:0;overflow:auto;padding:14px">
+                <div style="display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start">
+                  <sc-for list="{{ w.files }}" as="f" hint-placeholder-count="2">
+                    <button data-file="{{ f.key }}" data-app="{{ w.app }}" data-id="{{ w.id }}" onDoubleClick="{{ openFileItem }}" onClick="{{ selectFile }}" style="{{ f.iconStyle }}" style-hover="{{ f.iconHover }}">
+                      <span style="{{ f.tile }}">{{ f.abbr }}</span>
+                      <span style="{{ f.labelStyle }}">{{ f.name }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ w.viewList }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+                <div style="flex:none;display:flex;border-bottom:1px solid #c3bcab;background:#e7e1d5">
+                  <button data-id="{{ w.id }}" data-sort="name" onClick="{{ setSort }}" style="flex:1;min-width:0;text-align:left;padding:4px 8px;font-family:inherit;font-size:11px;font-weight:700;color:#2f2a26;cursor:pointer;border:none;border-right:1px solid #c3bcab;background:transparent" style-hover="background:#ded7c7">{{ w.nameHdr }}</button>
+                  <button data-id="{{ w.id }}" data-sort="date" onClick="{{ setSort }}" style="flex:none;width:130px;text-align:left;padding:4px 8px;font-family:inherit;font-size:11px;font-weight:700;color:#2f2a26;cursor:pointer;border:none;background:transparent" style-hover="background:#ded7c7">{{ w.dateHdr }}</button>
+                </div>
+                <div data-id="{{ w.id }}" onMouseDown="{{ clearFileSel }}" style="flex:1;min-height:0;overflow:auto">
+                  <sc-for list="{{ w.files }}" as="f" hint-placeholder-count="6">
+                    <button data-file="{{ f.key }}" data-app="{{ w.app }}" data-id="{{ w.id }}" onDoubleClick="{{ openFileItem }}" onClick="{{ selectFile }}" style="{{ f.rowStyle }}" style-hover="{{ f.rowHover }}">
+                      <span style="{{ f.nameStyle }}">
+                        <span style="{{ f.rowTile }}"></span>{{ f.name }}
+                      </span>
+                      <span style="{{ f.dateStyle }}">{{ f.modified }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <div style="flex:none;display:flex;align-items:center;padding:3px 8px;border-top:1px solid #c3bcab;background:linear-gradient(180deg,#e7e1d5,#dcd6c8);font-size:11px;color:#3a352d">{{ w.statusText }}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ w.isText }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;overflow:auto;background:#fff;padding:14px 16px">
+            <pre style="margin:0;font-family:'Courier New',Courier,monospace;font-size:12px;line-height:1.65;color:#1e1b16;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;cursor:text">{{ w.stubText }}</pre>
+          </div>
+        </sc-if>
+        <sc-if value="{{ w.isComputer }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;display:flex;background:#f5f1e9;overflow:hidden">
+            <!-- sidebar -->
+            <div style="flex:none;width:196px;padding:12px 10px;display:flex;flex-direction:column;gap:12px;background:#e7e1d5;border-right:1px solid #c3bcab;overflow-y:auto">
+              <div style="border:1px solid #c3bcab;border-radius:5px;overflow:hidden">
+                <div style="{{ pcPanelHead }}">System Tasks</div>
+                <div style="display:flex;flex-direction:column;gap:8px;padding:9px 10px;background:#fdfbf6">
+                  <span style="font-size:11px;color:#2a5f78;cursor:default">View system information</span>
+                  <span style="font-size:11px;color:#2a5f78;cursor:default">Add or remove programs</span>
+                  <span style="font-size:11px;color:#2a5f78;cursor:default">Change a setting</span>
+                </div>
+              </div>
+              <div style="border:1px solid #c3bcab;border-radius:5px;overflow:hidden">
+                <div style="{{ pcPanelHead }}">Other Places</div>
+                <div style="display:flex;flex-direction:column;gap:8px;padding:9px 10px;background:#fdfbf6">
+                  <span style="font-size:11px;color:#2a5f78;cursor:default">Desktop</span>
+                  <span style="font-size:11px;color:#2a5f78;cursor:default">My Documents</span>
+                  <span style="font-size:11px;color:#2a5f78;cursor:default">Network</span>
+                </div>
+              </div>
+              <div style="margin-top:auto;padding:9px 10px;border:1px solid #c3bcab;border-radius:5px;background:#fdfbf6">
+                <div style="font-size:10px;letter-spacing:.6px;color:#8a8377;margin-bottom:5px">SYSTEM</div>
+                <div style="font-size:11px;color:#3a352d;line-height:1.6">Custom build<br>6 cores / 12 threads · 16 GB · 1 TB</div>
+              </div>
+            </div>
+
+            <!-- main -->
+            <div style="flex:1;min-width:0;overflow:auto;padding:12px 18px 12px">
+              <div style="font-size:12px;font-weight:700;color:#2f2a26;padding-bottom:6px;border-bottom:1px solid #c3bcab;margin-bottom:10px">Components in This Computer</div>
+
+              <div style="display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap">
+                <!-- side-view diagram -->
+                <div style="flex:none;position:relative;width:min(288px,34vh);aspect-ratio:4/5;max-height:100%;background:linear-gradient(160deg,#2a3238,#1d242a);border:3px solid #4a545c;border-radius:6px;box-shadow:inset 0 0 40px rgba(0,0,0,.55)">
+                  <div style="position:absolute;left:3%;top:8%;width:15%;height:62%;border:1px dashed rgba(255,255,255,.14);border-radius:3px"></div>
+                  <sc-for list="{{ pcParts }}" as="p" hint-placeholder-count="7">
+                    <span data-part="{{ p.id }}" onMouseEnter="{{ hoverPart }}" onMouseLeave="{{ leavePart }}" style="{{ p.style }}">{{ p.abbr }}</span>
+                  </sc-for>
+                  <span data-part="case" onMouseEnter="{{ hoverPart }}" onMouseLeave="{{ leavePart }}" style="position:absolute;left:0;right:0;bottom:0;height:6%;display:flex;align-items:center;justify-content:center;font-size:8px;letter-spacing:1.5px;color:rgba(255,255,255,.4);cursor:default">CASE</span>
+                </div>
+
+                <!-- spec list -->
+                <div style="flex:1;min-width:210px;display:flex;flex-direction:column;gap:2px">
+                  <sc-for list="{{ pcRows }}" as="r" hint-placeholder-count="8">
+                    <div data-part="{{ r.id }}" onMouseEnter="{{ hoverPart }}" onMouseLeave="{{ leavePart }}" style="{{ r.style }}">
+                      <span style="{{ r.swatch }}"></span>
+                      <span style="flex:none;width:82px;font-size:11px;font-weight:700;color:#2f2a26">{{ r.name }}</span>
+                      <span style="flex:1;font-size:11px;color:#4a443c;text-wrap:pretty">{{ r.spec }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ w.isNotes }}" hint-placeholder-val="{{ false }}">
+          <textarea data-id="{{ w.id }}" onChange="{{ onNotes }}" value="{{ w.notes }}" style="position:absolute;inset:0;width:100%;height:100%;border:none;resize:none;padding:12px 14px;font-family:'Courier New',ui-monospace,monospace;font-size:13px;line-height:1.65;color:#2f2a26;background:#fdfbf6;outline:none"></textarea>
+        </sc-if>
+      </div>
+
+      <!-- status bar + resize grip -->
+      <div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;height:20px;padding:0 8px;background:#e4ded4;border-top:1px solid #b3ab9d;font-size:10px;color:#6b6459">
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">{{ w.status }}</span>
+        <span style="flex:none;padding:0 8px;border-left:1px solid #b3ab9d;border-right:1px solid #b3ab9d;color:#6b6459">{{ w.zone }}</span>
+        <span data-id="{{ w.id }}" onMouseDown="{{ startResize }}" style="width:14px;height:14px;flex:none;cursor:nwse-resize;background-image:linear-gradient(135deg,transparent 45%,#a9a294 45%,#a9a294 55%,transparent 55%),linear-gradient(135deg,transparent 70%,#a9a294 70%,#a9a294 80%,transparent 80%)"></span>
+      </div>
+    </div>
+  </sc-for>
+
+  <!-- start menu -->
+  <sc-if value="{{ startOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;bottom:38px;width:250px;z-index:9998;border:1px solid #0a1a20;border-radius:8px 8px 0 0;overflow:hidden;box-shadow:0 -8px 30px rgba(0,0,0,.45)">
+      <div style="{{ startHeadStyle }}">
+        <span style="width:30px;height:30px;flex:none;border-radius:5px;background-color:rgba(255,255,255,.22);background-image:url('assets/logo-icon.png');background-size:20px 20px;background-position:center;background-repeat:no-repeat"></span>
+        <span style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.4)">{{ machineName }}</span>
+      </div>
+      <div style="background:#f5f1e9;padding:6px">
+        <sc-for list="{{ icons }}" as="ic" hint-placeholder-count="4">
+          <button data-app="{{ ic.id }}" onClick="{{ openApp }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 9px;border:none;border-radius:5px;background:transparent;cursor:pointer;text-align:left" style-hover="background:#e0d8cb">
+            <span style="{{ ic.menuTile }}">
+        <sc-if value="{{ ic.isImg }}" hint-placeholder-val="{{ false }}">
+          <span role="img" aria-label="{{ ic.label }}" style="{{ ic.artStyle }}"></span>
+        </sc-if>
+        <sc-if value="{{ ic.isMono }}" hint-placeholder-val="{{ true }}">{{ ic.mono }}</sc-if>
+            </span>
+            <span style="font-size:12px;color:#2f2a26">{{ ic.label }}</span>
+          </button>
+        </sc-for>
+        <div style="height:1px;background:#cfc7b8;margin:6px 4px"></div>
+        <button onClick="{{ closeAll }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 9px;border:none;border-radius:5px;background:transparent;cursor:pointer;text-align:left" style-hover="background:#e0d8cb">
+          <span style="width:22px;height:22px;border-radius:4px;background:#b4a08f;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff">⏻</span>
+          <span style="font-size:12px;color:#2f2a26">Close All Windows</span>
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- taskbar (tb) -->
+  <div style="{{ taskbarStyle }}">
+    <button onClick="{{ toggleStart }}" style="{{ startBtnStyle }}">
+      <span style="width:18px;height:18px;flex:none;background-image:url('assets/icons/start.png');background-size:contain;background-position:center;background-repeat:no-repeat"></span>
+      start
+    </button>
+    <div style="width:1px;height:24px;background:rgba(255,255,255,.18);flex:none"></div>
+    <div style="flex:1;display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden">
+      <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="0">
+        <button data-id="{{ t.id }}" onClick="{{ taskClick }}" style="{{ t.style }}">
+          <span style="width:13px;height:13px;flex:none;display:block;position:relative">
+            <sc-if value="{{ t.hasIcon }}" hint-placeholder-val="{{ false }}">
+              <span style="{{ t.iconStyle }}"></span>
+            </sc-if>
+            <sc-if value="{{ t.noIcon }}" hint-placeholder-val="{{ true }}">
+              <span style="position:absolute;inset:0;border-radius:2px;background:rgba(255,255,255,.35)"></span>
+            </sc-if>
+          </span>
+          <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.title }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="flex:none;display:flex;align-items:center;gap:9px;padding:0 12px 0 10px;height:26px;border-left:1px solid rgba(255,255,255,.18)">
+      <span style="font-size:11px;color:rgba(255,255,255,.55);letter-spacing:.3px">{{ trayLabel }}</span>
+      <span style="font-size:11px;color:#fff;letter-spacing:.3px;font-variant-numeric:tabular-nums">{{ clock }}</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accentColor&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#c97b62&quot;, &quot;tsType&quot;: &quot;string&quot;,
+    &quot;options&quot;: [&quot;#c97b62&quot;, &quot;#4f7f8f&quot;, &quot;#7a6f9c&quot;, &quot;#6f8a5f&quot;], &quot;section&quot;: &quot;Theme&quot; },
+  &quot;wallpaper&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;photo&quot;, &quot;tsType&quot;: &quot;string&quot;,
+    &quot;options&quot;: [&quot;photo&quot;, &quot;glow&quot;, &quot;flat&quot;], &quot;section&quot;: &quot;Theme&quot; },
+  &quot;machineName&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Me.exe&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Theme&quot; },
+  &quot;trayLabel&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;local&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Theme&quot; },
+  &quot;autoOpenSite&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot; }
+}">
+class Component extends DCLogic {
+  state = { wins: [], zTop: 10, startOpen: false, menu: null, clock: '', sel: null, notes: {} };
+
+  APPS = {
+    computer: { label: 'My Computer', mono: 'MC', kind: 'computer', title: 'My Computer', w: 880, h: 640, icon: 'assets/icons/my-computer.ico' },
+    site:    { label: 'Internet Voyager', mono: 'V', kind: 'browser', title: 'vquach.com — Internet Voyager', icon: 'assets/icons/internet-voyager.png',
+               url: 'vquach.com', src: 'site.html', w: 1100, h: 800 },
+    soul:    { label: 'Soulsaver', mono: 'SS', kind: 'stub', title: 'Soulsaver', w: 520, h: 340,
+               stubText: 'Soulsaver is not wired into the desktop yet. It will open here as its own window.' },
+    pinball: { label: 'Space Cadets', mono: 'PB', kind: 'game', title: 'Space Cadets', w: 700, h: 700, icon: 'assets/icons/space-cadets.png',
+               src: 'https://98.js.org/programs/pinball/space-cadet.html',
+               status: 'Z left flipper \u00b7 / right flipper \u00b7 Space launch \u00b7 X tilt' },
+    visible: { label: 'Visible', mono: 'VB', kind: 'reader', title: 'Visible — epub reader', w: 1040, h: 740, icon: 'assets/icons/visible.png' },
+    webster: { label: 'Webster1903', mono: 'W', kind: 'folder', title: 'Webster1903', w: 520, h: 300, icon: 'assets/icons/folder.ico',
+               files: [
+                 { key: 'mobi', name: 'dictionary.mobi', abbr: 'AB', src: 'assets/dictionary.mobi' },
+                 { key: 'readme', name: 'README.txt', abbr: 'TXT' }
+               ] },
+    wreadme: { label: 'README.txt', mono: 'TXT', kind: 'text', title: 'README.txt — Notepad', w: 560, h: 420, hidden: true, icon: 'assets/icons/file.ico',
+               stubText: "Webster's 1913 for Kindle — with working inflections\n\nBuilds a Kindle dictionary from the public-domain Webster's 1913 where\ninflected forms (obliged, children, ran) resolve to their root entry\non tap — fixing the dead-end \"see oblige\" problem in the common builds.\n\nThe fix: each entry gets an `<idx:infl>` table listing its inflected\nsurface forms. That table is the mechanism the Kindle uses to resolve a\nhighlighted \"obliged\" back to the \"oblige\" entry. The stock community\nbuilds omit it; I rebuilt and compiled it.\n\nInspired by: https://jsomers.net/blog/dictionary" },
+    n960:    { label: '960', mono: '960', kind: 'folder', title: '960', w: 620, h: 440, icon: 'assets/icons/folder.ico', generated: true },
+    cristo:  { label: 'Monte Cristo', mono: '34', kind: 'cristo', title: 'Monte Cristo \u2014 The Faria Method', w: 1000, h: 720,
+               status: 'Wait and hope.' },
+    anklet:  { label: 'Anklet', mono: 'AK', kind: 'anklet', title: 'Anklet — flashcards', w: 980, h: 720 },
+    closet:  { label: 'Closet', mono: 'CL', kind: 'closet', title: 'Closet — wardrobe', w: 1060, h: 720 },
+    notes:   { label: 'Notes', mono: 'N', kind: 'notes', title: 'Notes — untitled.txt', w: 480, h: 360 },
+    machine: { label: 'About This Machine', mono: 'i', kind: 'stub', title: 'About This Machine', w: 460, h: 300,
+               stubText: 'A desktop for one person. Built by hand, no vendor, no updates. More programs get installed as they are needed.' }
+  };
+
+  // Icon data arrives as data URIs; their ";base64," confuses inline-style parsing,
+  // so hand back a blob: URL (no semicolons) instead.
+  ic(p) {
+    if (!p) return '';
+    const src = (window.MEEXE_ICONS || {})[p];
+    if (!src) return p;
+    this._blobs = this._blobs || {};
+    if (this._blobs[p]) return this._blobs[p];
+    try {
+      const [head, b64] = src.split(',');
+      const mime = head.slice(5).replace(';base64', '');
+      const bin = atob(b64);
+      const buf = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+      this._blobs[p] = URL.createObjectURL(new Blob([buf], { type: mime }));
+      return this._blobs[p];
+    } catch (e) { return p; }
+  }
+  accent() { return this.props.accentColor || '#c97b62'; }
+  machine() { return this.props.machineName || 'Me.exe'; }
+
+  componentDidMount() {
+    this.tick();
+    this._ci = setInterval(this.tick, 15000);
+    window.addEventListener('mousedown', this.onDocDown, true);
+    window.addEventListener('mousemove', this.onMove);
+    window.addEventListener('mouseup', this.onUp);
+    window.addEventListener('keydown', this.onKey);
+    try {
+      const n = JSON.parse(localStorage.getItem('meexe_notes') || '{}');
+      if (n && typeof n === 'object') this.setState({ notes: n });
+    } catch (e) {}
+    if (this.props.autoOpenSite !== false) this.waitForViewport(() => this.open('site', { max: true }));
+  }
+
+  MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // The 960 folder is 80 years of empty monthly files; generate rather than store.
+  filesFor(app) {
+    const a = this.APPS[app] || {};
+    if (a.files) return a.files;
+    if (!a.generated) return [];
+    this._gen = this._gen || {};
+    if (this._gen[app]) return this._gen[app];
+    const out = [];
+    for (let i = 0; i < 960; i++) {
+      const y = 1994 + Math.floor((4 + i) / 12), m = (4 + i) % 12;
+      out.push({ key: 'g' + i, name: y + '-' + String(m + 1).padStart(2, '0') + '-' + this.MONTHS[m] + '.txt', blank: true, age: i,
+                 modified: this.MONTHS[m].slice(0, 3) + ' ' + y });
+    }
+    this._gen[app] = out;
+    return out;
+  }
+  sortedFiles(w) {
+    const list = this.filesFor(w.app).slice();
+    const key = w.sortKey || 'name', dir = w.sortDir === -1 ? -1 : 1;
+    list.sort((a, b) => dir * (key === 'date'
+      ? (a.age || 0) - (b.age || 0)
+      : a.name.localeCompare(b.name)));
+    return list;
+  }
+  viewOf(w) { return w.view || ((this.APPS[w.app] || {}).generated ? 'list' : 'icons'); }
+  sortArrow(w, key) { return (w.sortKey || 'name') === key ? (w.sortDir === -1 ? '  ▲' : '  ▼') : ''; }
+  viewBtn(on) {
+    return 'display:flex;align-items:center;gap:4px;height:19px;padding:0 7px;font-family:inherit;font-size:11px;color:#1e1b16;'
+      + 'cursor:pointer;border:1px solid ' + (on ? '#8d8676' : 'transparent') + ';border-radius:3px;background:'
+      + (on ? '#ddd6c6' : 'transparent');
+  }
+  selectFile = (e) => {
+    const d = e.currentTarget.dataset, id = d.id, key = d.file;
+    const w = this.state.wins.find((x) => x.id === id); if (!w) return;
+    const order = this.sortedFiles(w).map((f) => f.key);
+    const sel = w.sel || [];
+    if (e.shiftKey && w.anchor && order.indexOf(w.anchor) !== -1) {
+      const a = order.indexOf(w.anchor), b = order.indexOf(key);
+      this.patch(id, { sel: order.slice(Math.min(a, b), Math.max(a, b) + 1) });
+      return;
+    }
+    if (e.metaKey || e.ctrlKey) {
+      const next = sel.indexOf(key) === -1 ? [...sel, key] : sel.filter((k) => k !== key);
+      this.patch(id, { sel: next, anchor: key });
+      return;
+    }
+    this.patch(id, { sel: [key], anchor: key });
+  };
+  clearFileSel = (e) => {
+    if (e.target !== e.currentTarget) return;
+    this.patch(e.currentTarget.dataset.id, { sel: [], anchor: null });
+  };
+  setView = (e) => { this.patch(e.currentTarget.dataset.id, { view: e.currentTarget.dataset.view }); };
+  setSort = (e) => {
+    const id = e.currentTarget.dataset.id, key = e.currentTarget.dataset.sort;
+    const w = this.state.wins.find((x) => x.id === id); if (!w) return;
+    const same = (w.sortKey || 'name') === key;
+    this.patch(id, { sortKey: key, sortDir: same && w.sortDir !== -1 ? -1 : 1 });
+  };
+
+  openFileItem = (e) => {
+    if (e.type === 'click' && e.detail < 2) return;      // single click just selects
+    const key = e.currentTarget.dataset.file;
+    const app = e.currentTarget.dataset.app;
+    if (key === 'readme') { this.open('wreadme'); return; }
+    const f = this.filesFor(app).find((x) => x.key === key);
+    if (!f) return;
+    if (f.blank) { this.openBlank(f.name); return; }
+    if (f.src) this.downloadFile(f);
+  };
+
+  // Generated files have no APPS entry; push a Notepad window straight in.
+  openBlank(name) {
+    const { vw, vh } = this.viewport();
+    const n = this.state.wins.length, z = this.state.zTop + 1;
+    const w = Math.min(520, vw - 60), h = Math.min(380, vh - 60);
+    this.setState((s) => ({
+      zTop: z, startOpen: false,
+      wins: [...s.wins, {
+        id: 'w' + Date.now() + n, app: '_blank', title: name + ' — Notepad', kind: 'text', mono: 'TXT',
+        stubText: '', x: Math.round((vw - w) / 2 + n * 20), y: Math.round((vh - h) / 2 + n * 18),
+        w, h, min: false, max: false, prev: { x: 40, y: 40, w, h }, z, navKey: 0
+      }]
+    }));
+  }
+
+  // The .mobi is a file to take away, not something the desktop opens: hand it
+  // to the browser as a download.
+  downloadFile(f) {
+    const a = document.createElement('a');
+    a.href = f.src;
+    a.download = f.name;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+  componentWillUnmount() {
+    clearInterval(this._ci);
+    window.removeEventListener('mousedown', this.onDocDown, true);
+    window.removeEventListener('mousemove', this.onMove);
+    window.removeEventListener('mouseup', this.onUp);
+    window.removeEventListener('keydown', this.onKey);
+  }
+
+  tick = () => {
+    const d = new Date();
+    let h = d.getHours(); const ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    this.setState({ clock: h + ':' + String(d.getMinutes()).padStart(2, '0') + ' ' + ap });
+  };
+  onKey = (e) => { if (e.key === 'Escape') this.setState({ startOpen: false, menu: null }); };
+
+  waitForViewport(fn, tries) {
+    const n = tries || 0;
+    if (window.innerWidth > 200 && window.innerHeight > 200) { setTimeout(fn, 60); return; }
+    if (n > 90) { setTimeout(fn, 60); return; }
+    requestAnimationFrame(() => this.waitForViewport(fn, n + 1));
+  }
+
+  viewport() {
+    return { vw: Math.max(window.innerWidth || 0, 640), vh: Math.max((window.innerHeight || 0) - 38, 420) };
+  }
+
+  open(app, opts) {
+    const a = this.APPS[app]; if (!a) return;
+    const existing = this.state.wins.find((w) => w.app === app);
+    if (existing) { this.focus(existing.id, { min: false }); this.setState({ startOpen: false }); return; }
+    const n = this.state.wins.length;
+    const { vw, vh } = this.viewport();
+    const w = Math.max(360, Math.min(a.w, vw - 40));
+    const h = Math.max(240, Math.min(a.h, vh - 40));
+    const z = this.state.zTop + 1;
+    this.setState((s) => ({
+      startOpen: false, zTop: z,
+      wins: [...s.wins, {
+        id: 'w' + Date.now() + n, app, title: a.title, kind: a.kind, mono: a.mono,
+        url: a.url, src: a.src, stubText: a.stubText, status: a.status,
+        x: Math.round((vw - w) / 2 + n * 26), y: Math.round((vh - h) / 2 + n * 22),
+        w, h, min: false, max: !!(opts && opts.max), prev: { x: Math.round((vw - w) / 2), y: Math.round((vh - h) / 2), w, h }, z, navKey: 0
+      }]
+    }));
+  }
+  focus(id, patch) {
+    const z = this.state.zTop + 1;
+    this.setState((s) => ({
+      zTop: z,
+      wins: s.wins.map((w) => (w.id === id ? { ...w, z, ...(patch || {}) } : w))
+    }));
+  }
+  patch(id, patch) {
+    this.setState((s) => ({ wins: s.wins.map((w) => (w.id === id ? { ...w, ...patch } : w)) }));
+  }
+
+  activateGame = (e) => {
+    const id = e.currentTarget.dataset.id;
+    this.patch(id, { gameOn: true });
+    setTimeout(() => {
+      const f = document.querySelector('iframe[data-game="' + id + '"]');
+      if (f) { try { f.focus(); f.contentWindow.focus(); } catch (err) {} }
+    }, 30);
+  };
+  openApp = (e) => this.open(e.currentTarget.dataset.app);
+  selectIcon = (e) => this.setState({ sel: e.currentTarget.dataset.app, startOpen: false });
+  toggleStart = () => this.setState((s) => ({ startOpen: !s.startOpen }));
+  closeAll = () => this.setState({ wins: [], startOpen: false });
+  focusWin = (e) => { const id = e.currentTarget.dataset.id; const w = this.state.wins.find((x) => x.id === id); if (w && w.z !== this.state.zTop) this.focus(id); };
+  closeWin = (e) => { e.stopPropagation(); const id = e.currentTarget.dataset.id; this.setState((s) => ({ wins: s.wins.filter((w) => w.id !== id) })); };
+  minWin = (e) => { e.stopPropagation(); this.patch(e.currentTarget.dataset.id, { min: true }); };
+  maxWin = (e) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.id;
+    const w = this.state.wins.find((x) => x.id === id); if (!w) return;
+    if (w.max) this.patch(id, { max: false, ...(w.prev || {}) });
+    else this.patch(id, { max: true, prev: { x: w.x, y: w.y, w: w.w, h: w.h } });
+  };
+  taskClick = (e) => {
+    const id = e.currentTarget.dataset.id;
+    const w = this.state.wins.find((x) => x.id === id); if (!w) return;
+    if (w.min) this.focus(id, { min: false });
+    else if (w.z === this.state.zTop) this.patch(id, { min: true });
+    else this.focus(id);
+  };
+  SITE = 'Vincent%20Quach.dc.html';
+
+  PARTS = [
+    { id: 'mobo',  name: 'Motherboard', spec: 'Gigabyte A520M DS3H Wifi',              box: [21, 8, 55, 61],  tint: '#3f5b4a', anchor: 'tr' },
+    { id: 'cpu',   name: 'CPU',         spec: 'AMD Ryzen 5 5500',                     box: [31, 17, 14, 10], tint: '#c1663f' },
+    { id: 'cool',  name: 'Cooler',      spec: 'Stock Cooler',                          box: null,             tint: '#8e9aa6' },
+    { id: 'ram',   name: 'RAM',         spec: 'Team Group 16GB DDR4 3200MHz CL16',     box: [55, 13, 17, 25], tint: '#7a6f9c' },
+    { id: 'ssd',   name: 'SSD',         spec: 'FIKWOT FN501Pro 1TB NVMe',              box: [27, 47, 19, 5],  tint: '#4f7f8f' },
+    { id: 'gpu',   name: 'GPU',         spec: 'MSI RTX 3070',                          box: [23, 57, 60, 12], tint: '#2f4f66' },
+    { id: 'psu',   name: 'PSU',         spec: 'EVGA 450BR — 450W 80+ Bronze',          box: [8, 76, 42, 17],  tint: '#5c5750' },
+    { id: 'case',  name: 'Case',        spec: 'Gamdias Talos E3',                      box: null,             tint: '#39424a' }
+  ];
+
+  MENU_SETS = {
+    explorer: {
+      File: [
+        { label: 'Create Shortcut', dim: true },
+        { label: 'Delete', dim: true },
+        { label: 'Rename', dim: true },
+        { label: 'Properties' },
+        { sep: true },
+        { label: 'Close', accel: 'Alt+F4', act: 'close' }
+      ],
+      View: [
+        { label: 'Toolbars', accel: '▸' },
+        { label: 'Status Bar', accel: '✓' },
+        { sep: true },
+        { label: 'Tiles' },
+        { label: 'Icons', accel: '✓' },
+        { label: 'List' },
+        { label: 'Details' },
+        { sep: true },
+        { label: 'Refresh', accel: 'F5' }
+      ],
+      Favorites: [
+        { label: 'Add to Favorites…' },
+        { label: 'Organize Favorites…' }
+      ],
+      Tools: [
+        { label: 'Map Network Drive…' },
+        { label: 'Disconnect Network Drive…', dim: true },
+        { sep: true },
+        { label: 'Folder Options…' }
+      ],
+      Help: [
+        { label: 'Help Topics' },
+        { sep: true },
+        { label: 'About This Machine', act: 'about' }
+      ]
+    }
+  };
+
+  MENUS = {
+    File: [
+      { label: 'New Window', accel: 'Ctrl+N' },
+      { label: 'Open…', accel: 'Ctrl+O' },
+      { label: 'Save As…', accel: 'Ctrl+S' },
+      { label: 'Print…', accel: 'Ctrl+P', act: 'print' },
+      { sep: true },
+      { label: 'Properties' },
+      { label: 'Work Offline' },
+      { sep: true },
+      { label: 'Close', accel: 'Alt+F4', act: 'close' }
+    ],
+    Edit: [
+      { label: 'Cut', accel: 'Ctrl+X', dim: true },
+      { label: 'Copy', accel: 'Ctrl+C', dim: true },
+      { label: 'Paste', accel: 'Ctrl+V', dim: true },
+      { sep: true },
+      { label: 'Select All', accel: 'Ctrl+A' },
+      { label: 'Find on this Page…', accel: 'Ctrl+F' }
+    ],
+    View: [
+      { label: 'Toolbars', accel: '▸' },
+      { label: 'Status Bar', accel: '✓' },
+      { sep: true },
+      { label: 'Stop', accel: 'Esc', act: 'stop' },
+      { label: 'Refresh', accel: 'F5', act: 'reload' },
+      { sep: true },
+      { label: 'Text Size', accel: '▸' },
+      { label: 'Source' },
+      { sep: true },
+      { label: 'Full Screen', accel: 'F11', act: 'max' }
+    ],
+    Favorites: [
+      { label: 'Add to Favorites…' },
+      { label: 'Organize Favorites…' },
+      { sep: true },
+      { label: 'vquach.com', act: 'home' }
+    ],
+    Tools: [
+      { label: 'Mail and News', accel: '▸' },
+      { label: 'Synchronize…', dim: true },
+      { label: 'Show Related Links' },
+      { sep: true },
+      { label: 'Internet Options…' }
+    ],
+    Help: [
+      { label: 'Contents and Index' },
+      { label: 'Tip of the Day' },
+      { sep: true },
+      { label: 'About This Browser', act: 'about' }
+    ]
+  };
+
+  hoverPart = (e) => this.setState({ part: e.currentTarget.dataset.part });
+  leavePart = () => this.setState({ part: null });
+
+  toggleMenu = (e) => {
+    e.stopPropagation();
+    const d = e.currentTarget.dataset;
+    this.setState((s) => ({ menu: s.menu && s.menu.id === d.id && s.menu.name === d.menu ? null : { id: d.id, name: d.menu } }));
+  };
+  hoverMenu = (e) => {
+    if (!this.state.menu) return;
+    const d = e.currentTarget.dataset;
+    this.setState({ menu: { id: d.id, name: d.menu } });
+  };
+  closeMenu = () => { if (this.state.menu) this.setState({ menu: null }); };
+  onDocDown = (e) => { if (!e.target.closest('[data-menuroot]')) this.closeMenu(); };
+
+  runMenuItem = (e) => {
+    e.stopPropagation();
+    const d = e.currentTarget.dataset, id = d.id, act = d.act;
+    this.closeMenu();
+    if (!act) return;
+    if (act === 'close') { this.setState((s) => ({ wins: s.wins.filter((w) => w.id !== id) })); return; }
+    if (act === 'home') { this.loadUrl(id, this.SITE, 'vquach.com'); return; }
+    if (act === 'stop') { this.patch(id, { status: 'Stopped' }); return; }
+    if (act === 'max') {
+      const w = this.state.wins.find((x) => x.id === id); if (!w) return;
+      if (w.max) this.patch(id, { max: false, ...(w.prev || {}) });
+      else this.patch(id, { max: true, prev: { x: w.x, y: w.y, w: w.w, h: w.h } });
+      return;
+    }
+    if (act === 'about') { this.open('machine'); return; }
+    const frame = this.frameFor(id);
+    if (!frame) return;
+    if (act === 'print') { try { frame.contentWindow.print(); } catch (er) {} return; }
+    if (act === 'reload') { try { frame.contentWindow.location.reload(); } catch (er) { frame.src = frame.src; } }
+  };
+
+  frameFor(id) { return document.querySelector('[data-id="' + id + '"] iframe'); }
+
+  navBrowser = (e) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.id, dir = e.currentTarget.dataset.dir;
+    const frame = this.frameFor(id);
+    if (!frame) return;
+    if (dir === 'home') { this.loadUrl(id, this.SITE, 'vquach.com'); return; }
+    if (dir === 'go') { this.commitAddr(id); return; }
+    if (dir === 'stop') { this.patch(id, { status: 'Stopped' }); return; }
+    if (dir === 'print') { try { frame.contentWindow.print(); } catch (er) {} return; }
+    try {
+      if (dir === 'back') frame.contentWindow.history.back();
+      else if (dir === 'fwd') frame.contentWindow.history.forward();
+      else frame.contentWindow.location.reload();
+    } catch (er) { frame.src = frame.src; }
+    this.patch(id, { status: 'Done' });
+  };
+
+  loadUrl(id, src, addr) {
+    const frame = this.frameFor(id);
+    if (frame) frame.src = src;
+    this.patch(id, { src, addr, url: addr, status: 'Opening page ' + addr + '…' });
+    setTimeout(() => this.patch(id, { status: 'Done' }), 600);
+  }
+
+  onAddr = (e) => this.patch(e.currentTarget.dataset.id, { addr: e.currentTarget.value });
+  onAddrKey = (e) => { if (e.key === 'Enter') this.commitAddr(e.currentTarget.dataset.id); };
+
+  commitAddr(id) {
+    const w = this.state.wins.find((x) => x.id === id); if (!w) return;
+    const raw = ((typeof w.addr === 'string' ? w.addr : w.url) || '').trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
+    if (!/^vquach\.com/i.test(raw)) {
+      this.patch(id, { status: 'Cannot find server \u2014 ' + (raw || 'about:blank') });
+      return;
+    }
+    const hash = raw.indexOf('#') >= 0 ? raw.slice(raw.indexOf('#')) : '';
+    this.loadUrl(id, this.SITE + hash, raw);
+  }
+  onNotes = (e) => {
+    const id = e.currentTarget.dataset.id;
+    const val = typeof e.currentTarget.value === 'string' ? e.currentTarget.value : '';
+    const w = this.state.wins.find((x) => x.id === id);
+    const next = { ...(this.state.notes || {}), [w ? w.app : id]: val };
+    this.setState({ notes: next });
+    try { localStorage.setItem('meexe_notes', JSON.stringify(next)); } catch (er) {}
+  };
+
+  startDrag = (e) => {
+    if (e.target.closest('button')) return;
+    const id = e.currentTarget.dataset.id;
+    const w = this.state.wins.find((x) => x.id === id); if (!w || w.max) return;
+    this._drag = { id, dx: e.clientX - w.x, dy: e.clientY - w.y };
+    this.focus(id);
+    e.preventDefault();
+  };
+  startResize = (e) => {
+    e.stopPropagation();
+    const id = e.currentTarget.dataset.id;
+    const w = this.state.wins.find((x) => x.id === id); if (!w || w.max) return;
+    this._rz = { id, sx: e.clientX, sy: e.clientY, sw: w.w, sh: w.h };
+    this.focus(id);
+    e.preventDefault();
+  };
+  onMove = (e) => {
+    if (this._drag) {
+      const lim = this.viewport().vh;
+      this.patch(this._drag.id, {
+        x: Math.max(-200, Math.min(window.innerWidth - 80, e.clientX - this._drag.dx)),
+        y: Math.max(0, Math.min(lim - 30, e.clientY - this._drag.dy))
+      });
+    } else if (this._rz) {
+      this.patch(this._rz.id, {
+        w: Math.max(320, this._rz.sw + (e.clientX - this._rz.sx)),
+        h: Math.max(200, this._rz.sh + (e.clientY - this._rz.sy))
+      });
+    }
+  };
+  onUp = () => { this._drag = null; this._rz = null; };
+
+  renderVals() {
+    const s = this.state, ac = this.accent();
+    const dim = 'color-mix(in oklab, ' + ac + ' 55%, #4a4a52)';
+
+    const artBox = (src, extra) => 'position:absolute;inset:0;display:block;background-image:url("' + src + '");'
+      + 'background-size:contain;background-repeat:no-repeat;background-position:center;' + (extra || '');
+
+    const icons = Object.keys(this.APPS).filter((id) => !this.APPS[id].hidden).map((id) => {
+      const a = this.APPS[id], on = s.sel === id;
+      return {
+        id, label: a.label, mono: a.mono,
+        style: 'display:flex;flex-direction:column;align-items:center;gap:5px;width:88px;padding:8px 4px 6px;border:1px solid '
+          + (on ? 'rgba(255,255,255,.35)' : 'transparent') + ';border-radius:5px;background:'
+          + (on ? 'rgba(255,255,255,.14)' : 'transparent') + ';cursor:pointer',
+        isImg: !!a.icon, isMono: !a.icon, artStyle: a.icon ? artBox(this.ic(a.icon)) : '',
+        tile: a.icon
+          ? 'position:relative;width:36px;height:36px;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.45))'
+          : 'width:36px;height:36px;border-radius:6px;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;'
+            + 'background:linear-gradient(160deg, ' + ac + ', ' + dim + ');box-shadow:0 3px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.35)',
+        menuTile: a.icon
+          ? 'position:relative;width:22px;height:22px;display:block;flex:none'
+          : 'width:22px;height:22px;border-radius:4px;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex:none;'
+            + 'background:linear-gradient(160deg, ' + ac + ', ' + dim + ')'
+      };
+    });
+
+    const wins = s.wins.filter((w) => !w.min).map((w) => {
+      const active = w.z === s.zTop;
+      const wIcon = this.ic((this.APPS[w.app] || {}).icon || (w.kind === 'text' ? 'assets/icons/file.ico' : ''));
+      const vp = this.viewport();
+      const raw = w.max ? { x: 0, y: 0, w: vp.vw - 2, h: vp.vh - 2 } : w;
+      const num = (v, min, fb) => (Number.isFinite(v) && v >= min ? v : fb);
+      const g = { x: num(raw.x, -9999, 20), y: num(raw.y, -9999, 20), w: num(raw.w, 320, 640), h: num(raw.h, 200, 440) };
+      return {
+        id: w.id, title: w.title, mono: w.mono, url: w.url, src: w.src, stubText: w.stubText,
+        isBrowser: w.kind === 'browser', isStub: w.kind === 'stub', isNotes: w.kind === 'notes',
+        isComputer: w.kind === 'computer', isGame: w.kind === 'game', gameIdle: w.kind === 'game' && !w.gameOn,
+        isFolder: w.kind === 'folder', isText: w.kind === 'text',
+        files: this.sortedFiles(w).map((f) => {
+          const on = (w.sel || []).indexOf(f.key) !== -1;
+          return {
+            key: f.key, name: f.name, abbr: '', modified: f.modified || '',
+            tile: 'width:34px;height:34px;display:block;background-image:url("' + this.ic('assets/icons/file.ico') + '");'
+              + 'background-size:contain;background-repeat:no-repeat;background-position:center',
+            rowTile: 'width:16px;height:16px;flex:none;display:block;background-image:url("' + this.ic('assets/icons/file.ico') + '");'
+              + 'background-size:contain;background-repeat:no-repeat;background-position:center',
+            rowStyle: 'display:flex;align-items:center;width:100%;padding:3px 8px;border:none;cursor:pointer;'
+              + 'font-family:inherit;text-align:left;background:' + (on ? '#31589e' : 'transparent'),
+            nameStyle: 'flex:1;min-width:0;display:flex;align-items:center;gap:7px;font-size:11px;white-space:nowrap;'
+              + 'overflow:hidden;text-overflow:ellipsis;color:' + (on ? '#fff' : '#2f2a26'),
+            dateStyle: 'flex:none;width:130px;padding-left:8px;font-size:11px;color:' + (on ? '#dce4f4' : '#6b6459'),
+            iconStyle: 'display:flex;flex-direction:column;align-items:center;gap:6px;width:104px;padding:10px 6px 8px;'
+              + 'border:1px solid ' + (on ? '#31589e' : 'transparent') + ';border-radius:5px;cursor:pointer;font-family:inherit;'
+              + 'background:' + (on ? 'rgba(49,88,158,.16)' : 'transparent'),
+            rowHover: on ? 'background:#31589e' : 'background:#e6e0d2',
+            iconHover: on ? 'background:rgba(49,88,158,.16);border-color:#31589e' : 'background:#e6e0d2;border-color:#c9c2b1',
+            labelStyle: 'font-size:11px;line-height:1.3;text-align:center;overflow-wrap:anywhere;padding:0 3px;border-radius:2px;'
+              + (on ? 'background:#31589e;color:#fff' : 'color:#2f2a26')
+          };
+        }),
+        statusText: (w.sel || []).length
+          ? (w.sel || []).length + ' of ' + this.filesFor(w.app).length + ' objects selected'
+          : this.filesFor(w.app).length + ' objects',
+        app: w.app, canIcons: !(this.APPS[w.app] || {}).generated,
+        viewIcons: this.viewOf(w) === 'icons', viewList: this.viewOf(w) === 'list',
+        iconsBtn: this.viewBtn(this.viewOf(w) === 'icons'), listBtn: this.viewBtn(this.viewOf(w) === 'list'),
+        nameHdr: 'Name' + this.sortArrow(w, 'name'),
+        dateHdr: 'Modified' + this.sortArrow(w, 'date'),
+        itemCount: this.filesFor(w.app).length + ' objects',
+        isReader: w.kind === 'reader',
+        isCristo: w.kind === 'cristo', isAnklet: w.kind === 'anklet', isCloset: w.kind === 'closet',
+        hasIcon: !!wIcon, noIcon: !wIcon,
+        iconStyle: wIcon ? artBox(wIcon) : '',
+        faviconStyle: wIcon
+          ? 'width:13px;height:13px;flex:none;display:block;background-image:url("' + wIcon + '");background-size:contain;background-repeat:no-repeat;background-position:center'
+          : 'width:13px;height:13px;flex:none;display:block',
+        hasChrome: w.kind === 'browser' || w.kind === 'computer',
+        notes: typeof (s.notes || {})[w.app] === 'string' ? s.notes[w.app] : '',
+        tabLabel: w.url,
+        addr: typeof w.addr === 'string' ? w.addr : (w.url || ''),
+        zone: w.kind === 'browser' ? 'Local intranet' : (w.kind === 'computer' ? 'My Computer' : ''),
+        menus: Object.keys(w.kind === 'computer' ? this.MENU_SETS.explorer : this.MENUS).map((name) => {
+          const open = !!(s.menu && s.menu.id === w.id && s.menu.name === name);
+          return {
+            name, open,
+            style: 'font-family:inherit;font-size:11px;color:#1e1b16;padding:2px 7px;cursor:default;'
+              + 'border:1px solid ' + (open ? '#8d8676' : 'transparent') + ';background:' + (open ? '#b6ae9c' : 'transparent'),
+            items: (w.kind === 'computer' ? this.MENU_SETS.explorer : this.MENUS)[name].map((it) => ({
+              isSep: !!it.sep, isItem: !it.sep,
+              label: it.label || '', accel: it.accel || '', act: it.act || '',
+              style: 'display:flex;align-items:center;width:100%;padding:4px 8px 4px 22px;font-family:inherit;font-size:11px;'
+                + 'border:none;background:transparent;cursor:default;color:' + (it.dim ? '#9a9488' : '#1e1b16')
+            }))
+          };
+        }),
+        tbMain: 'display:flex;align-items:center;gap:5px;height:24px;padding:0 8px;font-family:inherit;font-size:11px;color:#1e1b16;'
+          + 'background:transparent;border:1px solid transparent;cursor:pointer',
+        tbIcon: 'display:flex;align-items:center;justify-content:center;width:26px;height:24px;padding:0;font-family:inherit;'
+          + 'background:transparent;border:1px solid transparent;cursor:pointer',
+        status: w.status || (w.kind === 'browser' ? 'Done \u00b7 ' + w.url : (w.kind === 'notes' ? 'Saved locally' : (w.kind === 'computer' ? '8 components' : 'Ready'))),
+        frame: 'position:absolute;display:flex;flex-direction:column;overflow:hidden;animation:winIn .14s ease-out;'
+          + 'left:' + g.x + 'px;top:' + g.y + 'px;width:' + g.w + 'px;height:' + g.h + 'px;z-index:' + w.z + ';'
+          + 'border:1px solid ' + (active ? '#0d1c22' : '#3a4a52') + ';border-radius:' + (w.max ? '0' : '7px') + ';'
+          + 'box-shadow:' + (active ? '0 18px 44px rgba(0,0,0,.5)' : '0 8px 22px rgba(0,0,0,.3)'),
+        bar: 'flex:none;display:flex;align-items:center;gap:7px;height:28px;padding:0 6px 0 7px;cursor:' + (w.max ? 'default' : 'move') + ';'
+          + 'background:' + (active
+              ? 'linear-gradient(180deg, color-mix(in oklab, ' + ac + ' 88%, #fff) 0%, ' + ac + ' 48%, color-mix(in oklab, ' + ac + ' 78%, #000) 100%)'
+              : 'linear-gradient(180deg,#6c6b74,#54535c)')
+      };
+    });
+
+    const tasks = s.wins.map((w) => {
+      const active = !w.min && w.z === s.zTop;
+      const ai = this.ic((this.APPS[w.app] || {}).icon || '');
+      return {
+        id: w.id, title: w.title, hasIcon: !!ai, noIcon: !ai, iconStyle: ai ? artBox(ai) : '',
+        style: 'display:flex;align-items:center;gap:6px;max-width:190px;min-width:110px;height:26px;padding:0 10px;cursor:pointer;'
+          + 'font-family:inherit;font-size:11px;color:#fff;border-radius:4px;text-align:left;'
+          + 'border:1px solid ' + (active ? 'rgba(255,255,255,.4)' : 'rgba(255,255,255,.14)') + ';'
+          + 'background:' + (active ? 'color-mix(in oklab, ' + ac + ' 55%, #16262e)' : 'rgba(255,255,255,.07)')
+      };
+    });
+
+    return {
+      icons, wins, tasks,
+      toggleMenu: this.toggleMenu, hoverMenu: this.hoverMenu, runMenuItem: this.runMenuItem,
+      hoverPart: this.hoverPart, leavePart: this.leavePart,
+      pcPanelHead: 'padding:7px 10px;font-size:11px;font-weight:700;color:#fff;'
+        + 'background:linear-gradient(180deg, color-mix(in oklab, ' + ac + ' 82%, #fff), ' + ac + ')',
+      pcParts: this.PARTS.filter((p) => p.box).map((p) => {
+        const on = s.part === p.id;
+        const [x, y, w, h] = p.box;
+        return {
+          id: p.id, abbr: p.name.toUpperCase(),
+          style: 'position:absolute;display:flex;align-items:center;justify-content:center;cursor:default;'
+            + 'left:' + x + '%;top:' + y + '%;width:' + w + '%;height:' + h + '%;'
+            + 'font-size:8px;letter-spacing:1px;text-align:center;line-height:1.2;padding:2px 3px;'
+            + (p.anchor === 'br' ? 'align-items:flex-end;justify-content:flex-end;' : '')
+            + (p.anchor === 'tr' ? 'align-items:flex-start;justify-content:flex-end;' : '')
+            + 'border-radius:2px;transition:box-shadow .12s,background .12s;'
+            + 'background:' + (on ? 'color-mix(in oklab, ' + p.tint + ' 70%, #fff)' : p.tint) + ';'
+            + 'border:1px solid ' + (on ? '#fff' : 'rgba(255,255,255,.22)') + ';'
+            + 'color:' + (on ? '#15201a' : 'rgba(255,255,255,.72)') + ';'
+            + 'box-shadow:' + (on ? '0 0 0 2px ' + ac + ', 0 4px 14px rgba(0,0,0,.5)' : '0 2px 6px rgba(0,0,0,.35)')
+        };
+      }),
+      pcRows: this.PARTS.map((p) => {
+        const on = s.part === p.id;
+        return {
+          id: p.id, name: p.name, spec: p.spec,
+          style: 'display:flex;align-items:center;gap:10px;padding:7px 9px;cursor:default;border-radius:4px;'
+            + 'border:1px solid ' + (on ? '#c3bcab' : 'transparent') + ';background:' + (on ? '#fdfbf6' : 'transparent'),
+          swatch: 'flex:none;width:9px;height:9px;border-radius:2px;border:1px solid rgba(0,0,0,.25);background:' + p.tint
+        };
+      }),
+      startOpen: s.startOpen, clock: s.clock, machineName: this.machine(),
+      trayLabel: this.props.trayLabel || 'local',
+      wallStyle: 'position:absolute;inset:0;background-color:#16262e;'
+        + (this.props.wallpaper === 'flat'
+            ? ''
+            : this.props.wallpaper === 'glow'
+              ? 'background-image:radial-gradient(120% 85% at 50% 118%, color-mix(in oklab, ' + ac + ' 32%, #16262e) 0%, #16262e 42%, #0c171c 100%);'
+              : 'background-image:url("assets/wallpaper.jpg");background-size:cover;background-position:center 62%;background-repeat:no-repeat;'),
+      taskbarStyle: 'position:absolute;left:0;right:0;bottom:0;height:38px;z-index:9999;display:flex;align-items:center;gap:6px;'
+        + 'padding:0 0 0 4px;background:linear-gradient(180deg,#1d3039,#132229);border-top:2px solid ' + ac,
+      startBtnStyle: 'display:flex;align-items:center;gap:7px;height:30px;padding:0 16px 0 10px;margin:0 2px;flex:none;cursor:pointer;'
+        + 'font-family:inherit;font-size:13px;font-weight:700;font-style:italic;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.4);'
+        + 'border:1px solid rgba(255,255,255,.25);border-radius:5px;'
+        + 'background:linear-gradient(180deg, color-mix(in oklab, ' + ac + ' 85%, #fff), ' + ac + ' 55%, color-mix(in oklab, ' + ac + ' 72%, #000))',
+      startHeadStyle: 'display:flex;align-items:center;gap:10px;padding:11px 12px;'
+        + 'background:linear-gradient(180deg, color-mix(in oklab, ' + ac + ' 85%, #fff), ' + ac + ')',
+      setView: this.setView, setSort: this.setSort, selectFile: this.selectFile, clearFileSel: this.clearFileSel,
+      openApp: this.openApp, openFileItem: this.openFileItem, selectIcon: this.selectIcon, toggleStart: this.toggleStart, closeAll: this.closeAll,
+      focusWin: this.focusWin, closeWin: this.closeWin, minWin: this.minWin, maxWin: this.maxWin,
+      taskClick: this.taskClick, startDrag: this.startDrag, startResize: this.startResize,
+      navBrowser: this.navBrowser, onNotes: this.onNotes, activateGame: this.activateGame,
+      onAddr: this.onAddr, onAddrKey: this.onAddrKey
+    };
+  }
+}
+</script>
+</body>
+</html>
