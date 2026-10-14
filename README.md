@@ -8,7 +8,8 @@ Copy the contents to the web root, replacing what's there.
 | `site.html` | `/site.html` | The portfolio site; also what Internet Voyager loads |
 | `Visible.dc.html` | — | The Visible epub reader, loaded when that app opens |
 | `MonteCristo.dc.html` | — | The Monte Cristo course, loaded when that app opens. Progress is saved in the browser |
-| `support.js` | — | Runtime `Visible.dc.html` and `MonteCristo.dc.html` need |
+| `Closet.dc.html` / `Anklet.dc.html` | — | Closet and Anklet apps. Closet syncs to Supabase via its SYNC button |
+| `support.js` | — | Runtime the `.dc.html` apps need |
 | `mobi-dict.js` | — | The .mobi dictionary parser, imported by Visible on demand |
 | `assets/dictionary.mobi` | — | Optional. Lives in the Webster1903 folder on the desktop; opening it loads it into Visible |
 | `assets/` | `/assets/…` | Wallpaper and icons |

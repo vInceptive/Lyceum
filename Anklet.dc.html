@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Noto+Serif+Thai:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+@keyframes ak-packIn{from{opacity:0;transform:translateY(70px) scale(.86) rotate(-5deg)}to{opacity:1;transform:none}}
+@keyframes ak-shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-3deg)}40%{transform:rotate(3deg)}60%{transform:rotate(-2deg)}80%{transform:rotate(1.5deg)}}
+@keyframes ak-tear{0%{transform:none;opacity:1}100%{transform:translate(110px,-170px) rotate(34deg);opacity:0}}
+@keyframes ak-packAway{to{transform:translateY(440px) rotate(-10deg);opacity:0}}
+@keyframes ak-cardOut{from{transform:translateY(0)}to{transform:translateY(-250px)}}
+@keyframes ak-cardSettle{from{transform:translateY(-250px)}to{transform:translateY(-20px) scale(1.22)}}
+@keyframes ak-flash{0%{opacity:0;transform:scaleX(.2)}30%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1.4)}}
+@keyframes ak-spark{0%{opacity:0;transform:translate(0,0) scale(.4)}20%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1)}}
+@keyframes ak-sheen{from{transform:translateX(-130%)}to{transform:translateX(130%)}}
+@keyframes ak-fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+<div ref="{{ rRoot }}" tabIndex="0" onKeyDown="{{ onKey }}" style="position:absolute;inset:0;overflow:hidden;outline:none;display:flex;flex-direction:column;color:#e9dcc6;font-family:'Instrument Serif',Georgia,serif;background:radial-gradient(ellipse 55% 50% at 50% 42%,rgba(255,226,180,.15),transparent 72%),radial-gradient(ellipse at 50% 45%,#4a1421 0%,#2b0b13 58%,#12040a 100%)">
+  <div style="position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px),repeating-linear-gradient(0deg,rgba(0,0,0,.06) 0 1px,transparent 1px 2px)"></div>
+  <div style="position:absolute;top:-6%;left:50%;width:76%;height:96%;transform:translateX(-50%);pointer-events:none;background:linear-gradient(180deg,rgba(255,236,200,.12),rgba(255,236,200,0) 88%);clip-path:polygon(43% 0,57% 0,100% 100%,0 100%);filter:blur(16px)"></div>
+
+  <div style="position:relative;z-index:2;flex:none;display:flex;align-items:center;gap:16px;padding:14px 22px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.42em;color:#c9a46a">ANKLET</div>
+    <div style="flex:1;min-width:0;text-align:center;font-size:20px;font-style:italic;color:#e9dcc6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ headTitle }}</div>
+    <div style="display:flex;gap:8px">
+      <sc-if value="{{ showEditBtn }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ editCurrent }}" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:#e9dcc6;background:transparent;border:1px solid rgba(201,164,106,.4);padding:6px 12px;cursor:pointer" style-hover="background:rgba(201,164,106,.15)">EDIT</button>
+      </sc-if>
+      <sc-if value="{{ showStudyBtn }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ studyCurrent }}" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:#e9dcc6;background:transparent;border:1px solid rgba(201,164,106,.4);padding:6px 12px;cursor:pointer" style-hover="background:rgba(201,164,106,.15)">STUDY</button>
+      </sc-if>
+      <sc-if value="{{ showGalleryBtn }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ toShelf }}" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:#e9dcc6;background:transparent;border:1px solid rgba(201,164,106,.4);padding:6px 12px;cursor:pointer" style-hover="background:rgba(201,164,106,.15)">GALLERY</button>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{ isShelf }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative;z-index:1;flex:1;min-height:0;overflow:auto;display:flex;flex-wrap:wrap;align-items:center;align-content:center;justify-content:center;gap:56px;padding:20px 30px 40px">
+      <sc-for list="{{ shelf }}" as="d" hint-placeholder-count="1">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+          <button data-id="{{ d.id }}" onClick="{{ openDeck }}" style="position:relative;width:180px;height:260px;padding:0;border:none;cursor:pointer;border-radius:5px;overflow:hidden;background:linear-gradient(115deg,#8d8a9e 0%,#ebe8f6 18%,#a998cf 32%,#8fcfc9 48%,#f0dea6 62%,#b9a9e0 78%,#d9d8e6 100%);box-shadow:0 34px 44px -20px rgba(0,0,0,.75),inset 0 0 0 1px rgba(255,255,255,.4);transition:transform .25s ease" style-hover="transform:translateY(-8px) rotate(-1deg)">
+            <span style="position:absolute;left:0;right:0;top:0;height:14px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 2px,rgba(255,255,255,.3) 2px 4px)"></span>
+            <span style="position:absolute;left:0;right:0;bottom:0;height:14px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 2px,rgba(255,255,255,.3) 2px 4px)"></span>
+            <span style="position:absolute;inset:0;background:linear-gradient(100deg,transparent 28%,rgba(255,255,255,.6) 45%,transparent 62%);mix-blend-mode:overlay"></span>
+            <span style="position:absolute;left:16px;right:16px;top:62px;bottom:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px;background:#1b0a10;border:1px solid rgba(201,164,106,.75);text-align:center">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.32em;color:#c9a46a">ANKLET</span>
+              <span style="font-family:'Instrument Serif',serif;font-size:26px;line-height:1.05;color:#f2eadb;text-wrap:balance">{{ d.name }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;color:#c9a46a">{{ d.countLabel }}</span>
+            </span>
+          </button>
+          <div style="min-width:180px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 12px;background:linear-gradient(180deg,#dcc18b,#a8834c);box-shadow:0 2px 0 #6e5228,0 6px 12px rgba(0,0,0,.4);font-family:'IBM Plex Mono',monospace;color:#2b1d0c">
+            <span style="font-size:11px;font-weight:500;letter-spacing:.1em">{{ d.dueLabel }}</span>
+            <span style="font-size:10px;letter-spacing:.06em">{{ d.nextLabel }}</span>
+          </div>
+          <button data-id="{{ d.id }}" onClick="{{ editDeck }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:#c9b18a;background:transparent;border:none;cursor:pointer;padding:4px 8px" style-hover="color:#f2eadb">EDIT CARDS</button>
+        </div>
+      </sc-for>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <button onClick="{{ newDeck }}" style="width:180px;height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px dashed rgba(201,164,106,.5);border-radius:5px;background:rgba(0,0,0,.18);cursor:pointer;color:#c9b18a;font-family:'Instrument Serif',serif;font-size:22px" style-hover="background:rgba(201,164,106,.08);color:#f2eadb">
+          <span style="font-size:34px;line-height:1">+</span>
+          <span>New deck</span>
+        </button>
+        <div style="height:66px"></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isOpening }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ skipOpening }}" style="position:relative;z-index:1;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <div style="position:relative;width:260px;height:380px">
+        <div style="position:absolute;left:20px;top:44px;width:220px;height:310px;z-index:1;border-radius:3px;background:radial-gradient(ellipse at 50% 0%,#fbf6ec,#efe5d2 70%,#e4d6bc);box-shadow:0 30px 50px -20px rgba(0,0,0,.8),inset 0 0 0 6px #f3ebdc,inset 0 0 0 7px rgba(120,90,50,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;animation:ak-cardOut .9s cubic-bezier(.2,.8,.2,1) 1.3s both, ak-cardSettle .7s cubic-bezier(.3,.7,.2,1) 2.3s forwards">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.32em;color:#8a6a3a">ANKLET</span>
+          <span style="width:40px;height:1px;background:#b08d57"></span>
+          <span style="font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;color:#2a2018;text-align:center;padding:0 16px">{{ openName }}</span>
+        </div>
+        <div style="position:absolute;inset:0;z-index:2;animation:ak-packIn .55s cubic-bezier(.2,.8,.2,1) both, ak-shake .45s ease-in-out .6s">
+          <div style="position:absolute;left:0;top:52px;width:260px;height:328px;border-radius:0 0 5px 5px;overflow:hidden;background:linear-gradient(115deg,#8d8a9e 0%,#ebe8f6 18%,#a998cf 32%,#8fcfc9 48%,#f0dea6 62%,#b9a9e0 78%,#d9d8e6 100%);box-shadow:0 40px 50px -22px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.4);animation:ak-packAway .6s cubic-bezier(.5,0,.8,.4) 2.05s forwards">
+            <span style="position:absolute;left:0;right:0;bottom:0;height:16px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 2px,rgba(255,255,255,.3) 2px 4px)"></span>
+            <span style="position:absolute;top:0;bottom:0;left:0;width:60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);mix-blend-mode:overlay;animation:ak-sheen 1.1s ease-in-out .2s both"></span>
+            <span style="position:absolute;left:22px;right:22px;top:46px;bottom:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#1b0a10;border:1px solid rgba(201,164,106,.75);text-align:center;padding:10px">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.32em;color:#c9a46a">ANKLET</span>
+              <span style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1.05;color:#f2eadb">{{ openName }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:#c9a46a">{{ openCount }}</span>
+            </span>
+          </div>
+          <div style="position:absolute;left:0;top:0;width:260px;height:54px;border-radius:5px 5px 0 0;overflow:hidden;background:linear-gradient(115deg,#8d8a9e 0%,#ebe8f6 18%,#a998cf 32%,#8fcfc9 48%,#f0dea6 62%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);animation:ak-tear .6s cubic-bezier(.3,.6,.4,1) 1.05s forwards">
+            <span style="position:absolute;left:0;right:0;top:0;height:16px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 2px,rgba(255,255,255,.3) 2px 4px)"></span>
+            <span style="position:absolute;left:0;right:0;bottom:0;height:2px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.35) 0 3px,transparent 3px 6px)"></span>
+          </div>
+        </div>
+        <div style="position:absolute;left:-50px;top:36px;width:360px;height:34px;z-index:3;pointer-events:none;border-radius:50%;background:radial-gradient(ellipse,rgba(255,250,230,.95),rgba(255,230,170,.35) 45%,transparent 70%);filter:blur(4px);animation:ak-flash .7s ease-out 1.05s both"></div>
+        <sc-for list="{{ sparks }}" as="sp" hint-placeholder-count="0">
+          <span style="{{ sp.style }}"></span>
+        </sc-for>
+      </div>
+      <div style="position:absolute;bottom:22px;left:0;right:0;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:#b9a58a">CLICK TO SKIP</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isStudy }}" hint-placeholder-val="{{ false }}">
+    <div style="position:relative;z-index:1;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 20px 22px;animation:ak-fadeIn .4s ease both">
+      <div style="position:relative;width:min(320px,80vw);height:min(440px,calc(100% - 150px));min-height:300px;perspective:1600px">
+        <div style="position:absolute;left:-30%;right:-30%;bottom:-46px;height:70px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,225,170,.2),transparent 70%);pointer-events:none"></div>
+        <div onClick="{{ flip }}" style="{{ cardInner }}">
+          <div style="position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:3px;background:radial-gradient(ellipse at 50% 0%,#fbf6ec,#efe5d2 70%,#e4d6bc);box-shadow:0 40px 60px -25px rgba(0,0,0,.85),inset 0 0 0 8px #f3ebdc,inset 0 0 0 9px rgba(120,90,50,.28);display:flex;flex-direction:column;align-items:center;padding:26px 24px 20px;color:#2a2018">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.24em;color:#8a6a3a">{{ cardNo }}</div>
+            <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center">
+              <sc-if value="{{ hasImage }}" hint-placeholder-val="{{ false }}">
+                <span style="{{ cardImageStyle }}"></span>
+              </sc-if>
+              <sc-if value="{{ qThai }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                  <div style="font-family:'Noto Serif Thai',serif;font-size:42px;line-height:1.35;color:#2a2018;text-wrap:balance">{{ qHtml }}</div>
+                  <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;color:#6b4f2a">{{ reading }}</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ qLatin }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:'Instrument Serif',serif;font-size:40px;line-height:1.1;color:#2a2018;text-wrap:balance">{{ qHtml }}</div>
+              </sc-if>
+              <sc-if value="{{ audioFront }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ play }}" title="Hear it (P)" style="width:44px;height:44px;border-radius:50%;border:1px solid #b08d57;background:transparent;color:#6b4f2a;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:rgba(176,141,87,.15)">▶</button>
+              </sc-if>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#9a8466">CLICK OR SPACE TO TURN</div>
+          </div>
+          <div style="position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);border-radius:3px;background:radial-gradient(ellipse at 50% 0%,#fbf6ec,#efe5d2 70%,#e4d6bc);box-shadow:0 40px 60px -25px rgba(0,0,0,.85),inset 0 0 0 8px #f3ebdc,inset 0 0 0 9px rgba(120,90,50,.28);display:flex;flex-direction:column;align-items:center;padding:26px 24px 20px;color:#2a2018">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.24em;color:#8a6a3a">{{ cardNo }}</div>
+            <div style="flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center">
+              <div style="font-family:'Noto Serif Thai',serif;font-size:28px;line-height:1.4;color:#2a2018">{{ termHtml }}</div>
+              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:22px;color:#6b4f2a">{{ reading }}</div>
+              <span style="width:44px;height:1px;background:#b08d57;margin:4px 0"></span>
+              <div style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1.1;color:#2a2018;text-wrap:balance">{{ meaningHtml }}</div>
+              <sc-if value="{{ hasNote }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:'Instrument Serif',serif;font-size:16px;line-height:1.35;color:#5a4a38;max-width:250px;text-wrap:pretty">{{ noteHtml }}</div>
+              </sc-if>
+              <button onClick="{{ play }}" title="Hear it (P)" style="margin-top:6px;width:40px;height:40px;border-radius:50%;border:1px solid #b08d57;background:transparent;color:#6b4f2a;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:rgba(176,141,87,.15)">▶</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;background:linear-gradient(180deg,#dcc18b,#a8834c);box-shadow:0 2px 0 #6e5228,0 6px 12px rgba(0,0,0,.4);font-family:'IBM Plex Mono',monospace;color:#2b1d0c">
+        <span style="font-size:10px;font-weight:500;letter-spacing:.12em">{{ placardTop }}</span>
+        <span style="font-size:10px;letter-spacing:.04em">{{ placardSub }}</span>
+      </div>
+      <div style="min-height:58px;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{ notFlipped }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ flip }}" style="font-family:'Instrument Serif',serif;font-size:20px;color:#f2eadb;background:rgba(0,0,0,.25);border:1px solid rgba(201,164,106,.4);padding:10px 34px;cursor:pointer" style-hover="background:rgba(201,164,106,.14)">Turn the card</button>
+        </sc-if>
+        <sc-if value="{{ flipped }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;animation:ak-fadeIn .3s ease both">
+            <sc-for list="{{ grades }}" as="g" hint-placeholder-count="4">
+              <button data-g="{{ g.g }}" onClick="{{ rate }}" style="min-width:96px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 14px;background:rgba(0,0,0,.28);border:1px solid rgba(201,164,106,.4);cursor:pointer" style-hover="background:rgba(201,164,106,.16)">
+                <span style="font-family:'Instrument Serif',serif;font-size:20px;color:#f2eadb">{{ g.label }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:#c9a46a">{{ g.ivl }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+    <div style="position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;animation:ak-fadeIn .5s ease both">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.3em;color:#c9a46a">THE GALLERY IS CLOSED</div>
+      <div style="font-size:40px;line-height:1.1;color:#f2eadb;max-width:520px;text-wrap:balance">{{ doneTitle }}</div>
+      <div style="font-size:19px;font-style:italic;color:#c9b18a;max-width:440px;text-wrap:pretty">{{ doneSub }}</div>
+      <button onClick="{{ toShelf }}" style="margin-top:10px;font-family:'Instrument Serif',serif;font-size:19px;color:#f2eadb;background:rgba(0,0,0,.25);border:1px solid rgba(201,164,106,.4);padding:9px 28px;cursor:pointer" style-hover="background:rgba(201,164,106,.14)">Back to the gallery</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isEdit }}" hint-placeholder-val="{{ false }}">
+    <div style="position:relative;z-index:1;flex:1;min-height:0;display:grid;grid-template-columns:minmax(200px,260px) minmax(0,1fr);gap:18px;padding:4px 22px 22px">
+      <div style="min-height:0;display:flex;flex-direction:column;gap:10px;background:rgba(10,2,6,.45);border:1px solid rgba(201,164,106,.25);padding:14px">
+        <label style="display:flex;flex-direction:column;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a">DECK NAME
+          <input value="{{ eName }}" onChange="{{ onDeckField }}" data-f="name" style="font-family:'Instrument Serif',serif;font-size:20px;letter-spacing:0;color:#f2eadb;background:rgba(0,0,0,.3);border:1px solid rgba(201,164,106,.35);padding:4px 8px;outline:none">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a">VOICE LANGUAGE
+          <input value="{{ eLang }}" onChange="{{ onDeckField }}" data-f="lang" placeholder="th-TH" style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0;color:#f2eadb;background:rgba(0,0,0,.3);border:1px solid rgba(201,164,106,.35);padding:5px 8px;outline:none">
+        </label>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a;margin-top:4px">{{ eCount }}</div>
+        <div style="flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ eCards }}" as="c" hint-placeholder-count="4">
+            <button data-id="{{ c.id }}" onClick="{{ pickCard }}" style="{{ c.style }}">
+              <span style="font-family:'Noto Serif Thai',serif;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.front }}</span>
+              <span style="font-size:14px;font-style:italic;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.back }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <button onClick="{{ newCard }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:#f2eadb;background:transparent;border:1px solid rgba(201,164,106,.4);padding:7px;cursor:pointer" style-hover="background:rgba(201,164,106,.15)">+ NEW CARD</button>
+      </div>
+
+      <div style="min-height:0;overflow:auto;display:flex;flex-direction:column;gap:12px;background:rgba(10,2,6,.45);border:1px solid rgba(201,164,106,.25);padding:16px 18px">
+        <div style="display:flex;align-items:baseline;gap:10px">
+          <div style="font-size:24px;color:#f2eadb">{{ eHeading }}</div>
+          <div style="flex:1"></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c9b18a">**bold** · *italic* · line breaks kept</div>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a">FRONT · TERM
+          <textarea rows="2" value="{{ fFront }}" onChange="{{ onField }}" data-f="front" style="font-family:'Noto Serif Thai',serif;font-size:20px;letter-spacing:0;color:#f2eadb;background:rgba(0,0,0,.3);border:1px solid rgba(201,164,106,.35);padding:6px 8px;outline:none;resize:vertical"></textarea>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a">READING · ROMANIZATION
+          <input value="{{ fReading }}" onChange="{{ onField }}" data-f="reading" style="font-family:'Instrument Serif',serif;font-style:italic;font-size:18px;letter-spacing:0;color:#f2eadb;background:rgba(0,0,0,.3);border:1px solid rgba(201,164,106,.35);padding:5px 8px;outline:none">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a">BACK · MEANING
+          <textarea rows="2" value="{{ fBack }}" onChange="{{ onField }}" data-f="back" style="font-family:'Instrument Serif',serif;font-size:18px;letter-spacing:0;color:#f2eadb;background:rgba(0,0,0,.3);border:1px solid rgba(201,164,106,.35);padding:6px 8px;outline:none;resize:vertical"></textarea>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a">NOTE
+          <textarea rows="3" value="{{ fNote }}" onChange="{{ onField }}" data-f="note" style="font-family:'Instrument Serif',serif;font-size:16px;letter-spacing:0;color:#f2eadb;background:rgba(0,0,0,.3);border:1px solid rgba(201,164,106,.35);padding:6px 8px;outline:none;resize:vertical"></textarea>
+        </label>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <div style="display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid rgba(201,164,106,.25)">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a">IMAGE</div>
+            <sc-if value="{{ fHasImage }}" hint-placeholder-val="{{ false }}">
+              <span style="{{ fImageStyle }}"></span>
+            </sc-if>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onClick="{{ chooseImage }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#f2eadb;background:transparent;border:1px solid rgba(201,164,106,.4);padding:5px 10px;cursor:pointer" style-hover="background:rgba(201,164,106,.15)">Choose image…</button>
+              <sc-if value="{{ fHasImage }}" hint-placeholder-val="{{ false }}">
+                <button data-f="image" onClick="{{ clearMedia }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c9b18a;background:transparent;border:none;padding:5px 6px;cursor:pointer">Remove</button>
+              </sc-if>
+            </div>
+            <input ref="{{ rImg }}" type="file" accept="image/*" onChange="{{ onImage }}" style="display:none">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid rgba(201,164,106,.25)">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a">PRONUNCIATION</div>
+            <div style="font-size:14px;font-style:italic;color:#c9b18a">{{ fAudioLabel }}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onClick="{{ chooseAudio }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#f2eadb;background:transparent;border:1px solid rgba(201,164,106,.4);padding:5px 10px;cursor:pointer" style-hover="background:rgba(201,164,106,.15)">Choose audio…</button>
+              <button onClick="{{ playForm }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#f2eadb;background:transparent;border:1px solid rgba(201,164,106,.4);padding:5px 10px;cursor:pointer" style-hover="background:rgba(201,164,106,.15)">▶ Play</button>
+              <sc-if value="{{ fHasAudio }}" hint-placeholder-val="{{ false }}">
+                <button data-f="audio" onClick="{{ clearMedia }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c9b18a;background:transparent;border:none;padding:5px 6px;cursor:pointer">Remove</button>
+              </sc-if>
+            </div>
+            <input ref="{{ rAud }}" type="file" accept="audio/*" onChange="{{ onAudio }}" style="display:none">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button onClick="{{ saveCard }}" style="font-family:'Instrument Serif',serif;font-size:18px;color:#2b1d0c;background:linear-gradient(180deg,#dcc18b,#a8834c);border:none;padding:7px 22px;cursor:pointer" style-hover="filter:brightness(1.08)">{{ saveLabel }}</button>
+          <sc-if value="{{ canDeleteCard }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ deleteCard }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#e2a4a4;background:transparent;border:1px solid rgba(226,164,164,.4);padding:7px 12px;cursor:pointer">DELETE CARD</button>
+          </sc-if>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c9b18a">{{ eStatus }}</div>
+        </div>
+        <div style="height:1px;background:rgba(201,164,106,.2);margin:6px 0"></div>
+        <label style="display:flex;flex-direction:column;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#c9a46a">BULK ADD · ONE CARD PER LINE · TERM | READING | MEANING
+          <textarea rows="3" value="{{ eBulk }}" onChange="{{ onBulk }}" placeholder="น้ำ | náam | Water" style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0;color:#f2eadb;background:rgba(0,0,0,.3);border:1px solid rgba(201,164,106,.35);padding:6px 8px;outline:none;resize:vertical"></textarea>
+        </label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onClick="{{ addBulk }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#f2eadb;background:transparent;border:1px solid rgba(201,164,106,.4);padding:6px 12px;cursor:pointer" style-hover="background:rgba(201,164,106,.15)">ADD LINES</button>
+          <div style="flex:1"></div>
+          <button onClick="{{ resetDeck }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#c9b18a;background:transparent;border:1px solid rgba(201,164,106,.3);padding:6px 12px;cursor:pointer">RESET PROGRESS</button>
+          <button onClick="{{ deleteDeck }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#e2a4a4;background:transparent;border:1px solid rgba(226,164,164,.4);padding:6px 12px;cursor:pointer">DELETE DECK</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;direction&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Term → Meaning&quot;,&quot;Meaning → Term&quot;],&quot;default&quot;:&quot;Term → Meaning&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;newPerDay&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;min&quot;:1,&quot;max&quot;:50,&quot;default&quot;:10,&quot;tsType&quot;:&quot;number&quot;},&quot;autoplay&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const MIN = 60000, HOUR = 3600000, DAY = 86400000;
+const KEY = 'anklet.v1';
+
+const ES_PHRASES = `Perdón por mi acento|Sorry about my accent
+Disculpe, mi español no es muy bueno|Excuse me, my Spanish isn't very good
+Lo siento, estoy aprendiendo|Sorry, I'm still learning
+¿Puede hablar más despacio, por favor?|Can you speak more slowly, please?
+¿Puede repetir, por favor?|Can you repeat that, please?
+No entiendo|I don't understand
+¿Habla inglés?|Do you speak English?
+Una mesa para dos, por favor|A table for two, please
+La carta, por favor|The menu, please
+¿Qué me recomienda?|What do you recommend?
+Quisiera…|I would like…|Polite. More natural than quiero.
+Para mí, la paella|For me, the paella
+Una tortilla española|A Spanish potato omelette
+Unas tapas para compartir|Some tapas to share
+Patatas bravas|Fried potatoes with spicy sauce
+Jamón ibérico|Iberian cured ham
+Gazpacho|Cold tomato soup
+El menú del día|The set lunch menu|Usually a starter, main, dessert and a drink.
+De primero…|For the first course…
+De segundo…|For the main course…
+De postre…|For dessert…
+Una copa de vino tinto|A glass of red wine
+Una caña|A small draft beer
+Agua con gas / sin gas|Sparkling / still water
+Un café con leche|A coffee with milk
+Sin carne, por favor|No meat, please
+Soy alérgico a…|I'm allergic to…|Women say alérgica.
+¿Está picante?|Is it spicy?
+Está delicioso|It's delicious
+La cuenta, por favor|The check, please
+¿Puedo pagar con tarjeta?|Can I pay by card?
+¿Dónde está el baño?|Where is the restroom?
+Muchas gracias, muy amable|Thank you, that's very kind`;
+const ES_WORDS = `hola|hello
+adiós|goodbye
+por favor|please
+gracias|thank you
+de nada|you're welcome
+sí|yes
+no|no
+perdón|sorry / excuse me
+buenos días|good morning
+buenas tardes|good afternoon
+buenas noches|good evening / night
+yo|I
+tú|you (informal)
+usted|you (formal)
+él|he
+ella|she
+nosotros|we
+ellos|they
+mi|my
+tu|your
+su|his / her / their
+este|this
+ese|that
+aquí|here
+allí|there
+qué|what
+quién|who
+dónde|where
+cuándo|when
+cómo|how
+por qué|why
+cuánto|how much
+cuál|which
+porque|because
+y|and
+o|or
+pero|but
+con|with
+sin|without
+para|for / in order to
+por|for / by / through
+de|of / from
+en|in / on
+a|to
+entre|between
+sobre|on / about
+desde|from / since
+hasta|until
+antes|before
+después|after
+muy|very
+más|more
+menos|less
+mucho|a lot
+poco|a little
+todo|all / everything
+nada|nothing
+algo|something
+alguien|someone
+nadie|nobody
+siempre|always
+nunca|never
+también|also
+tampoco|neither
+ya|already
+todavía|still / yet
+ahora|now
+hoy|today
+mañana|tomorrow / morning
+ayer|yesterday
+pronto|soon
+tarde|late / afternoon
+temprano|early
+bien|well / fine
+mal|badly
+ser|to be (permanent)
+estar|to be (state, location)
+tener|to have
+hacer|to do / to make
+ir|to go
+venir|to come
+poder|to be able to
+querer|to want / to love
+saber|to know (facts)
+conocer|to know (people, places)
+decir|to say
+hablar|to speak
+ver|to see
+mirar|to look at
+oír|to hear
+dar|to give
+tomar|to take / to drink
+comer|to eat
+beber|to drink
+vivir|to live
+trabajar|to work
+estudiar|to study
+aprender|to learn
+entender|to understand
+pensar|to think
+creer|to believe
+necesitar|to need
+gustar|to please / to like
+buscar|to look for
+encontrar|to find
+llegar|to arrive
+salir|to leave / go out
+entrar|to enter
+volver|to return
+esperar|to wait / to hope
+pagar|to pay
+comprar|to buy
+vender|to sell
+abrir|to open
+cerrar|to close
+empezar|to begin
+terminar|to finish
+llamar|to call
+escribir|to write
+leer|to read
+dormir|to sleep
+caminar|to walk
+correr|to run
+viajar|to travel
+usar|to use
+ayudar|to help
+pedir|to ask for / to order
+preguntar|to ask (a question)
+responder|to answer
+pasar|to happen / to pass
+quedar|to stay / to remain
+poner|to put
+traer|to bring
+llevar|to carry / to wear
+dejar|to leave / to let
+seguir|to follow / continue
+jugar|to play
+cocinar|to cook
+limpiar|to clean
+olvidar|to forget
+recordar|to remember
+sentir|to feel
+visitar|to visit
+el hombre|man
+la mujer|woman
+el niño|boy / child
+la niña|girl
+el amigo|friend
+la familia|family
+la madre|mother
+el padre|father
+el hermano|brother
+la hermana|sister
+el hijo|son
+la hija|daughter
+la gente|people
+la persona|person
+el nombre|name
+la casa|house / home
+el cuarto|room
+la puerta|door
+la ventana|window
+la mesa|table
+la silla|chair
+la cama|bed
+el baño|bathroom
+la cocina|kitchen
+la ciudad|city
+el pueblo|town
+la calle|street
+el país|country
+el mundo|world
+el lugar|place
+la tienda|shop
+el mercado|market
+el restaurante|restaurant
+el hotel|hotel
+el banco|bank
+la playa|beach
+el mar|sea
+el aeropuerto|airport
+la estación|station
+el tren|train
+el autobús|bus
+el coche|car
+el taxi|taxi
+el avión|airplane
+el billete|ticket
+el dinero|money
+el precio|price
+el trabajo|work / job
+la escuela|school
+el libro|book
+el teléfono|phone
+el agua|water
+la comida|food / lunch
+el desayuno|breakfast
+la cena|dinner
+el pan|bread
+la carne|meat
+el pollo|chicken
+el pescado|fish
+el arroz|rice
+la fruta|fruit
+la verdura|vegetable
+el huevo|egg
+el queso|cheese
+la leche|milk
+el café|coffee
+el té|tea
+el vino|wine
+la cerveza|beer
+el azúcar|sugar
+la sal|salt
+el día|day
+la noche|night
+la semana|week
+el mes|month
+el año|year
+la hora|hour / time
+el minuto|minute
+el tiempo|time / weather
+el lunes|Monday
+el martes|Tuesday
+el miércoles|Wednesday
+el jueves|Thursday
+el viernes|Friday
+el sábado|Saturday
+el domingo|Sunday
+uno|one
+dos|two
+tres|three
+cuatro|four
+cinco|five
+seis|six
+siete|seven
+ocho|eight
+nueve|nine
+diez|ten
+veinte|twenty
+cincuenta|fifty
+cien|one hundred
+mil|one thousand
+primero|first
+la cosa|thing
+la parte|part
+la vez|time (occurrence)
+la vida|life
+el problema|problem
+la pregunta|question
+la respuesta|answer
+la idea|idea
+la palabra|word
+el idioma|language
+la mano|hand
+la cabeza|head
+el ojo|eye
+la boca|mouth
+el pie|foot
+el cuerpo|body
+el corazón|heart
+el sol|sun
+la lluvia|rain
+el calor|heat
+el frío|cold
+la izquierda|left
+la derecha|right
+recto|straight ahead
+cerca|near
+lejos|far
+arriba|up / upstairs
+abajo|down / downstairs
+dentro|inside
+fuera|outside
+bueno|good
+malo|bad
+grande|big
+pequeño|small
+nuevo|new
+viejo|old
+joven|young
+largo|long
+corto|short
+alto|tall / high
+bajo|short / low
+bonito|pretty
+feo|ugly
+fácil|easy
+difícil|difficult
+caliente|hot
+frío|cold
+rápido|fast
+lento|slow
+barato|cheap
+caro|expensive
+abierto|open
+cerrado|closed
+libre|free / available
+lleno|full
+vacío|empty
+feliz|happy
+triste|sad
+cansado|tired
+listo|ready / clever
+mismo|same
+otro|other / another
+posible|possible
+importante|important
+rojo|red
+azul|blue
+verde|green
+blanco|white
+negro|black
+amarillo|yellow`;
+const SEED_ES = () => {
+  const parse = (s, p) => s.split('\n').map((l, i) => { const [front, back, note] = l.split('|'); return { id: p + i, front, reading: '', back, note: note || '', image: '', audio: '' }; });
+  return { id: 'es300', seedV: 1, name: 'Spanish 300 + At the Table', lang: 'es-ES', sched: {}, newLog: { date: '', n: 0 }, cards: [...parse(ES_PHRASES, 'esp'), ...parse(ES_WORDS, 'esw')] };
+};
+
+const SEED = () => ({
+  id: 'thai10', seedV: 3, name: 'Thai for Travelers', lang: 'th-TH', sched: {}, newLog: { date: '', n: 0 },
+  cards: [
+    { id: 'p1', front: 'สวัสดีครับ', reading: 'sà-wàt-dii kráp', back: 'Hello / Bye', note: 'Male form. Women end with *kâ* instead of *kráp*.' },
+    { id: 'p2', front: 'ขอบคุณมากครับ', reading: 'kàwp-kun mâak kráp', back: 'Thank you very much', note: '' },
+    { id: 'p3', front: 'ขอโทษครับ', reading: 'kǎw-tôht kráp', back: 'Sorry / Excuse me', note: '' },
+    { id: 'p4', front: 'นี่เท่าไหร่', reading: 'nîi tâo-rài', back: 'This one, how much?', note: '' },
+    { id: 'p5', front: 'เอาอันนี้', reading: 'ao an-níi', back: 'I want this one', note: '' },
+    { id: 'p6', front: 'ไม่เอา', reading: 'mâi ao', back: 'I don\u2019t want / No thanks', note: '' },
+    { id: 'p7', front: 'ไป…', reading: 'bpai… (place)', back: 'To… (place)', note: 'Say it to a taxi or tuk-tuk driver, then the destination.' },
+    { id: 'p8', front: 'ห้องน้ำอยู่ไหน', reading: 'hâwng-náam yùu nǎi', back: 'Where is the bathroom?', note: '' },
+    { id: 'p9', front: 'พูดภาษาอังกฤษได้ไหม', reading: 'pûut paa-sǎa ang-grìt dâai mǎi', back: 'Can you speak English?', note: '' },
+    { id: 'p10', front: 'อร่อยมาก', reading: 'à-ròi mâak', back: 'Very delicious', note: '' }
+  ]
+});
+
+const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const fmt = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>').replace(/\n/g, '<br>');
+const plain = (s) => String(s || '').replace(/\*+/g, '');
+const rich = (s) => React.createElement('span', { dangerouslySetInnerHTML: { __html: fmt(s) } });
+const today = () => new Date().toISOString().slice(0, 10);
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+function dur(ms) {
+  if (ms < HOUR) return Math.max(1, Math.round(ms / MIN)) + 'm';
+  if (ms < DAY) return Math.round(ms / HOUR) + 'h';
+  const d = ms / DAY;
+  if (d < 30) return Math.round(d) + 'd';
+  if (d < 365) return (d / 30).toFixed(1).replace(/\.0$/, '') + 'mo';
+  return (d / 365).toFixed(1).replace(/\.0$/, '') + 'y';
+}
+function durLong(ms) {
+  const s = dur(ms);
+  return s.replace(/m$/, ' min').replace(/h$/, ' hr').replace(/d$/, ' days').replace(/mo$/, ' months').replace(/y$/, ' years').replace(/^1 days/, '1 day');
+}
+
+// SM-2 with learning steps. Review intervals land where recall is predicted to fall to ~90%.
+function schedule(c, g, now) {
+  c = c || { state: 'new', ivl: 0, ease: 2.5, reps: 0, lapses: 0, step: 0, due: 0 };
+  const n = { ...c, reps: (c.reps || 0) + 1, last: now };
+  if (c.state === 'review') {
+    if (g === 1) { n.lapses = (c.lapses || 0) + 1; n.ease = Math.max(1.3, c.ease - 0.2); n.ivl = Math.max(1, Math.round(c.ivl * 0.5)); n.state = 'relearn'; n.due = now + 10 * MIN; }
+    else {
+      const late = Math.max(0, (now - c.due) / DAY);
+      let iv;
+      if (g === 2) { iv = Math.max(c.ivl + 1, c.ivl * 1.2); n.ease = Math.max(1.3, c.ease - 0.15); }
+      else if (g === 3) iv = Math.max(c.ivl + 1, (c.ivl + late / 2) * c.ease);
+      else { iv = Math.max(c.ivl + 2, (c.ivl + late) * c.ease * 1.3); n.ease = c.ease + 0.15; }
+      n.ivl = Math.round(iv); n.due = now + n.ivl * DAY;
+    }
+  } else if (c.state === 'relearn') {
+    if (g === 1) n.due = now + 10 * MIN;
+    else { n.state = 'review'; if (g === 4) n.ivl = c.ivl + 1; n.due = now + n.ivl * DAY; }
+  } else {
+    const step = c.state === 'learn' ? c.step : 0;
+    if (g === 1) { n.state = 'learn'; n.step = 0; n.due = now + MIN; }
+    else if (g === 2) { n.state = 'learn'; n.step = step; n.due = now + (step === 0 ? 6 : 10) * MIN; }
+    else if (g === 3 && step === 0) { n.state = 'learn'; n.step = 1; n.due = now + 10 * MIN; }
+    else { n.state = 'review'; n.ivl = g === 4 ? 4 : 1; n.due = now + n.ivl * DAY; }
+  }
+  return n;
+}
+
+class Component extends DCLogic {
+  state = { view: 'shelf', decks: [], deckId: null, cur: null, flipped: false, studied: 0, now: Date.now(), edit: null };
+  rRoot = React.createRef(); rImg = React.createRef(); rAud = React.createRef();
+
+  componentDidMount() {
+    let decks = null;
+    try { decks = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    if (!Array.isArray(decks) || !decks.length) decks = [SEED()];
+    else decks = decks.map((d) => (d.id === 'thai10' && d.seedV !== 3 ? SEED() : d));
+    if (!localStorage.getItem('anklet.es300') && !decks.some((d) => d.id === 'es300')) {
+      decks = [...decks, SEED_ES()];
+      try { localStorage.setItem('anklet.es300', '1'); localStorage.setItem(KEY, JSON.stringify(decks)); } catch (e) {}
+    }
+    this.setState({ decks });
+    this.tick = setInterval(() => this.setState({ now: Date.now() }), 20000);
+    if (window.speechSynthesis) speechSynthesis.getVoices();
+  }
+  componentWillUnmount() { clearInterval(this.tick); clearTimeout(this.openT); }
+  componentDidUpdate(pp, ps) {
+    if (this.state.view === 'study' && this.state.cur && (this.state.cur !== ps.cur || ps.view !== 'study')) {
+      this.rRoot.current && this.rRoot.current.focus();
+      if ((this.props.autoplay ?? true) && this.fwd()) setTimeout(() => this.play(), 350);
+    }
+  }
+
+  fwd() { return (this.props.direction ?? 'Term → Meaning') === 'Term → Meaning'; }
+  perDay() { return this.props.newPerDay ?? 10; }
+  deck(id) { return this.state.decks.find((d) => d.id === (id || this.state.deckId)); }
+  persist(decks, extra) {
+    let warn = '';
+    try { localStorage.setItem(KEY, JSON.stringify(decks)); } catch (e) { warn = 'Storage full \u2014 media too large to save.'; }
+    this.setState({ decks, ...(extra || {}), ...(warn ? { edit: { ...(this.state.edit || {}), status: warn } } : {}) });
+  }
+  putDeck(d, extra) { this.persist(this.state.decks.map((x) => (x.id === d.id ? d : x)), extra); }
+
+  newLeft(d) { const log = d.newLog && d.newLog.date === today() ? d.newLog.n : 0; return Math.max(0, this.perDay() - log); }
+  next(d, now) {
+    const s = d.sched || {};
+    const learn = [], rev = [], fresh = [], ahead = [];
+    d.cards.forEach((c) => {
+      const x = s[c.id];
+      if (!x || x.state === 'new') fresh.push(c);
+      else if (x.state === 'review') { if (x.due <= now) rev.push([x.due, c]); }
+      else if (x.due <= now) learn.push([x.due, c]);
+      else if (x.due <= now + 20 * MIN) ahead.push([x.due, c]);
+    });
+    const by = (a, b) => a[0] - b[0];
+    learn.sort(by); rev.sort(by); ahead.sort(by);
+    const nl = Math.min(fresh.length, this.newLeft(d));
+    const pick = (learn[0] && learn[0][1]) || (rev[0] && rev[0][1]) || (nl ? fresh[0] : null) || (ahead[0] && ahead[0][1]) || null;
+    return { pick, due: learn.length + rev.length, fresh: nl, remaining: learn.length + rev.length + nl + ahead.length };
+  }
+  nextDueIn(d, now) {
+    const ds = Object.values(d.sched || {}).filter((x) => x.state !== 'new').map((x) => x.due).filter((t) => t > now);
+    const hasNew = d.cards.some((c) => !(d.sched || {})[c.id]);
+    if (!ds.length) return hasNew ? 'More new cards tomorrow' : 'Nothing scheduled';
+    return 'Next card in ' + durLong(Math.min(...ds) - now);
+  }
+
+  openDeck = (e) => {
+    const id = e.currentTarget.dataset.id, d = this.deck(id);
+    if (!d || !d.cards.length) return this.startEdit(id);
+    this.setState({ view: 'opening', deckId: id, studied: 0, flipped: false });
+    clearTimeout(this.openT);
+    this.openT = setTimeout(() => this.beginStudy(), 3100);
+  };
+  skipOpening = () => { clearTimeout(this.openT); this.beginStudy(); };
+  beginStudy() {
+    const d = this.deck(); if (!d) return;
+    const n = this.next(d, Date.now());
+    this.setState({ view: n.pick ? 'study' : 'done', cur: n.pick ? n.pick.id : null, flipped: false, now: Date.now() });
+  }
+  studyCurrent = () => this.beginStudy();
+  toShelf = () => { clearTimeout(this.openT); if (window.speechSynthesis) speechSynthesis.cancel(); this.setState({ view: 'shelf', edit: null }); };
+
+  flip = () => { if (this.state.view !== 'study') return; const f = !this.state.flipped; this.setState({ flipped: f }); if (f && !this.fwd() && (this.props.autoplay ?? true)) setTimeout(() => this.play(), 450); };
+  rate = (e) => this.grade(Number(e.currentTarget.dataset.g));
+  grade(g) {
+    const d = this.deck(), now = Date.now();
+    if (!d || !this.state.flipped) return;
+    const prev = (d.sched || {})[this.state.cur];
+    const sched = { ...(d.sched || {}), [this.state.cur]: schedule(prev, g, now) };
+    let newLog = d.newLog && d.newLog.date === today() ? d.newLog : { date: today(), n: 0 };
+    if (!prev || prev.state === 'new') newLog = { date: newLog.date, n: newLog.n + 1 };
+    const nd = { ...d, sched, newLog };
+    const n = this.next(nd, now);
+    this.putDeck(nd, { cur: n.pick ? n.pick.id : null, view: n.pick ? 'study' : 'done', flipped: false, studied: this.state.studied + 1, now });
+  }
+  onKey = (e) => {
+    if (this.state.view !== 'study') return;
+    if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!this.state.flipped) this.flip(); else this.grade(3); }
+    else if (/^[1-4]$/.test(e.key) && this.state.flipped) this.grade(Number(e.key));
+    else if (e.key === 'p' || e.key === 'P') this.play();
+  };
+
+  speak(card, lang) {
+    if (!card) return;
+    if (this.audio) { this.audio.pause(); this.audio = null; }
+    if (card.audio) { this.audio = new Audio(card.audio); this.audio.play().catch(() => {}); return; }
+    if (!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(plain(card.front));
+    u.lang = lang || 'th-TH'; u.rate = 0.8;
+    const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.replace('_', '-').toLowerCase().startsWith(u.lang.slice(0, 2).toLowerCase()));
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  }
+  play = (e) => {
+    if (e) e.stopPropagation();
+    const d = this.deck(); if (!d) return;
+    this.speak(d.cards.find((c) => c.id === this.state.cur), d.lang);
+  };
+
+  /* ---------- editing ---------- */
+  blank() { return { front: '', reading: '', back: '', note: '', image: '', audio: '' }; }
+  startEdit(id, cardId) {
+    const d = this.deck(id); if (!d) return;
+    const c = cardId ? d.cards.find((x) => x.id === cardId) : d.cards[0];
+    this.setState({ view: 'edit', deckId: d.id, edit: { cardId: c ? c.id : null, form: c ? { ...this.blank(), ...c } : this.blank(), bulk: '', status: '' } });
+  }
+  editDeck = (e) => this.startEdit(e.currentTarget.dataset.id);
+  editCurrent = () => this.startEdit(this.state.deckId, this.state.cur);
+  newDeck = () => {
+    const d = { id: uid(), name: 'Untitled deck', lang: 'th-TH', sched: {}, newLog: { date: '', n: 0 }, cards: [] };
+    this.persist([...this.state.decks, d]);
+    setTimeout(() => this.startEdit(d.id), 0);
+  };
+  setEdit(p) { this.setState({ edit: { ...this.state.edit, ...p } }); }
+  onDeckField = (e) => { const d = this.deck(); this.putDeck({ ...d, [e.currentTarget.dataset.f]: e.target.value }); };
+  onField = (e) => this.setEdit({ form: { ...this.state.edit.form, [e.currentTarget.dataset.f]: e.target.value }, status: '' });
+  onBulk = (e) => this.setEdit({ bulk: e.target.value });
+  pickCard = (e) => { const c = this.deck().cards.find((x) => x.id === e.currentTarget.dataset.id); this.setEdit({ cardId: c.id, form: { ...this.blank(), ...c }, status: '' }); };
+  newCard = () => this.setEdit({ cardId: null, form: this.blank(), status: '' });
+  saveCard = () => {
+    const d = this.deck(), f = this.state.edit.form;
+    if (!f.front.trim() && !f.back.trim()) return this.setEdit({ status: 'Add a term or a meaning first.' });
+    let cards, id = this.state.edit.cardId;
+    if (id) cards = d.cards.map((c) => (c.id === id ? { ...c, ...f } : c));
+    else { id = uid(); cards = [...d.cards, { id, ...f }]; }
+    this.putDeck({ ...d, cards }, { edit: { ...this.state.edit, cardId: id, status: 'Saved.' } });
+  };
+  deleteCard = () => {
+    const d = this.deck(), id = this.state.edit.cardId;
+    const sched = { ...(d.sched || {}) }; delete sched[id];
+    this.putDeck({ ...d, cards: d.cards.filter((c) => c.id !== id), sched }, { edit: { ...this.state.edit, cardId: null, form: this.blank(), status: 'Card deleted.' } });
+  };
+  addBulk = () => {
+    const d = this.deck();
+    const add = this.state.edit.bulk.split('\n').map((l) => l.split('|').map((x) => x.trim())).filter((p) => p[0])
+      .map((p) => ({ id: uid(), front: p[0], reading: p.length > 2 ? p[1] : '', back: p.length > 2 ? p[2] : (p[1] || ''), note: p[3] || '', image: '', audio: '' }));
+    if (!add.length) return;
+    this.putDeck({ ...d, cards: [...d.cards, ...add] }, { edit: { ...this.state.edit, bulk: '', status: add.length + ' cards added.' } });
+  };
+  resetDeck = () => { if (confirm('Forget all progress on this deck?')) this.putDeck({ ...this.deck(), sched: {}, newLog: { date: '', n: 0 } }, { edit: { ...this.state.edit, status: 'Progress reset.' } }); };
+  deleteDeck = () => { if (confirm('Delete this deck and its cards?')) this.persist(this.state.decks.filter((x) => x.id !== this.state.deckId), { view: 'shelf', edit: null }); };
+  chooseImage = () => this.rImg.current && this.rImg.current.click();
+  chooseAudio = () => this.rAud.current && this.rAud.current.click();
+  clearMedia = (e) => this.setEdit({ form: { ...this.state.edit.form, [e.currentTarget.dataset.f]: '' } });
+  onImage = (e) => {
+    const file = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!file) return;
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, 640 / Math.max(im.width, im.height));
+      const cv = document.createElement('canvas'); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k);
+      cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url);
+      this.setEdit({ form: { ...this.state.edit.form, image: cv.toDataURL('image/jpeg', 0.85) }, status: 'Image ready \u2014 save the card.' });
+    };
+    im.src = url;
+  };
+  onAudio = (e) => {
+    const file = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!file) return;
+    if (file.size > 1500000) return this.setEdit({ status: 'Audio over 1.5 MB \u2014 trim it to a short clip.' });
+    const r = new FileReader();
+    r.onload = () => this.setEdit({ form: { ...this.state.edit.form, audio: r.result }, status: 'Audio ready \u2014 save the card.' });
+    r.readAsDataURL(file);
+  };
+  playForm = () => this.speak(this.state.edit.form, this.deck().lang);
+
+  renderVals() {
+    const s = this.state, now = s.now, v = s.view, d = this.deck();
+    const base = {
+      rRoot: this.rRoot, rImg: this.rImg, rAud: this.rAud, onKey: this.onKey,
+      isShelf: v === 'shelf', isOpening: v === 'opening', isStudy: v === 'study', isDone: v === 'done', isEdit: v === 'edit',
+      showGalleryBtn: v !== 'shelf', showEditBtn: v === 'study' || v === 'done', showStudyBtn: v === 'edit' && !!d && d.cards.length > 0,
+      headTitle: v === 'shelf' ? 'The Gallery' : (d ? d.name : ''),
+      toShelf: this.toShelf, editCurrent: this.editCurrent, studyCurrent: this.studyCurrent,
+      openDeck: this.openDeck, editDeck: this.editDeck, newDeck: this.newDeck, skipOpening: this.skipOpening,
+      flip: this.flip, rate: this.rate, play: this.play
+    };
+
+    base.shelf = s.decks.map((x) => {
+      const n = this.next(x, now);
+      return {
+        id: x.id, name: x.name, countLabel: x.cards.length + (x.cards.length === 1 ? ' CARD' : ' CARDS'),
+        dueLabel: x.cards.length ? (n.due + ' DUE \u00b7 ' + n.fresh + ' NEW') : 'EMPTY',
+        nextLabel: x.cards.length ? (n.due + n.fresh ? 'Ready for viewing' : this.nextDueIn(x, now)) : 'Add cards to open'
+      };
+    });
+
+    if (v === 'opening' && d) {
+      base.openName = d.name; base.openCount = d.cards.length + ' CARDS';
+      base.sparks = [[-90, -60], [-40, -110], [20, -130], [80, -95], [120, -40], [-120, -20], [55, -150]].map(([dx, dy], i) =>
+        ({ style: 'position:absolute;left:' + (100 + i * 10) + 'px;top:50px;width:5px;height:5px;border-radius:50%;z-index:4;pointer-events:none;'
+          + 'background:#fff6dc;box-shadow:0 0 8px 2px rgba(255,230,170,.9);--dx:' + dx + 'px;--dy:' + dy + 'px;'
+          + 'animation:ak-spark .9s ease-out ' + (1.08 + i * 0.03).toFixed(2) + 's both' }));
+    }
+
+    if ((v === 'study' || v === 'done') && d) {
+      const c = d.cards.find((x) => x.id === s.cur) || {};
+      const idx = d.cards.indexOf(c);
+      const x = (d.sched || {})[c.id];
+      const fwd = this.fwd();
+      const n = this.next(d, now);
+      Object.assign(base, {
+        cardInner: 'position:absolute;inset:0;cursor:pointer;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.7,.2,1);transform:rotateY(' + (s.flipped ? 180 : 0) + 'deg)',
+        cardNo: 'NO. ' + String(idx + 1).padStart(2, '0') + ' \u00b7 ' + d.name.toUpperCase(),
+        hasImage: !!c.image, cardImageStyle: 'display:block;width:240px;max-width:100%;height:140px;background:url("' + (c.image || '') + '") center/contain no-repeat',
+        qThai: fwd, qLatin: !fwd, qHtml: rich(fwd ? c.front : c.back), audioFront: fwd,
+        termHtml: rich(c.front), reading: c.reading || '', meaningHtml: rich(c.back), hasNote: !!c.note, noteHtml: rich(c.note),
+        flipped: s.flipped, notFlipped: !s.flipped,
+        placardTop: n.remaining + ' REMAINING \u00b7 ' + s.studied + ' VIEWED',
+        placardSub: !x || x.state === 'new' ? 'New acquisition'
+          : x.state === 'review' ? 'Recall \u2248 ' + Math.round(100 * Math.pow(0.9, Math.max(0, now - (x.last || now)) / Math.max(1, x.ivl * DAY))) + '% \u00b7 last seen ' + durLong(Math.max(MIN, now - (x.last || now))) + ' ago'
+          : x.state === 'relearn' ? 'Relearning \u00b7 forgotten ' + x.lapses + '\u00d7' : 'In learning',
+        grades: [[1, 'Again'], [2, 'Hard'], [3, 'Good'], [4, 'Easy']].map(([g, label]) => ({ g, label, ivl: g + ' \u00b7 ' + dur(schedule(x, g, now).due - now) })),
+        doneTitle: s.studied ? 'You viewed ' + s.studied + (s.studied === 1 ? ' card.' : ' cards.') : 'Nothing is due right now.',
+        doneSub: this.nextDueIn(d, now) + '. Each card comes back when your recall is predicted to drop to about 90%.'
+      });
+    }
+
+    if (v === 'edit' && d && s.edit) {
+      const e = s.edit, f = e.form;
+      Object.assign(base, {
+        eName: d.name, eLang: d.lang || '', eCount: d.cards.length + (d.cards.length === 1 ? ' CARD' : ' CARDS'), eBulk: e.bulk, eStatus: e.status || '',
+        eHeading: e.cardId ? 'Edit card' : 'New card', saveLabel: e.cardId ? 'Save card' : 'Add card', canDeleteCard: !!e.cardId,
+        eCards: d.cards.map((c) => ({ id: c.id, front: plain(c.front) || '\u2014', back: plain(c.back),
+          style: 'display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;padding:6px 8px;border:none;cursor:pointer;text-align:left;font-family:\'Instrument Serif\',serif;color:#f2eadb;'
+            + 'background:' + (c.id === e.cardId ? 'rgba(201,164,106,.22)' : 'transparent') })),
+        fFront: f.front, fReading: f.reading, fBack: f.back, fNote: f.note,
+        fHasImage: !!f.image, fImageStyle: 'display:block;width:180px;height:110px;background:url("' + (f.image || '') + '") left center/contain no-repeat', fHasAudio: !!f.audio,
+        fAudioLabel: f.audio ? 'Recorded clip attached.' : 'No clip \u2014 the system voice reads the term (' + (d.lang || 'th-TH') + ').',
+        onDeckField: this.onDeckField, onField: this.onField, onBulk: this.onBulk, pickCard: this.pickCard, newCard: this.newCard,
+        saveCard: this.saveCard, deleteCard: this.deleteCard, addBulk: this.addBulk, resetDeck: this.resetDeck, deleteDeck: this.deleteDeck,
+        chooseImage: this.chooseImage, chooseAudio: this.chooseAudio, clearMedia: this.clearMedia, onImage: this.onImage, onAudio: this.onAudio, playForm: this.playForm
+      });
+    }
+    return base;
+  }
+}
+</script>
+</body>
+</html>

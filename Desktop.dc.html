@@ -891,7 +891,7 @@ class Component extends DCLogic {
       };
     });
 
-    const wins = s.wins.filter((w) => !w.min).map((w) => {
+    const wins = s.wins.map((w) => {
       const active = w.z === s.zTop;
       const wIcon = this.ic((this.APPS[w.app] || {}).icon || (w.kind === 'text' ? 'assets/icons/file.ico' : ''));
       const vp = this.viewport();
@@ -965,7 +965,7 @@ class Component extends DCLogic {
         tbIcon: 'display:flex;align-items:center;justify-content:center;width:26px;height:24px;padding:0;font-family:inherit;'
           + 'background:transparent;border:1px solid transparent;cursor:pointer',
         status: w.status || (w.kind === 'browser' ? 'Done \u00b7 ' + w.url : (w.kind === 'notes' ? 'Saved locally' : (w.kind === 'computer' ? '8 components' : 'Ready'))),
-        frame: 'position:absolute;display:flex;flex-direction:column;overflow:hidden;animation:winIn .14s ease-out;'
+        frame: 'position:absolute;display:' + (w.min ? 'none' : 'flex') + ';flex-direction:column;overflow:hidden;animation:winIn .14s ease-out;'
           + 'left:' + g.x + 'px;top:' + g.y + 'px;width:' + g.w + 'px;height:' + g.h + 'px;z-index:' + w.z + ';'
           + 'border:1px solid ' + (active ? '#0d1c22' : '#3a4a52') + ';border-radius:' + (w.max ? '0' : '7px') + ';'
           + 'box-shadow:' + (active ? '0 18px 44px rgba(0,0,0,.5)' : '0 8px 22px rgba(0,0,0,.3)'),
